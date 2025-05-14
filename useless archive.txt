@@ -1,0 +1,49 @@
+
+def today_date() -> str:
+    today = date.today()
+    return today.strftime("%Y-%m-%d")
+
+
+# @bot.event
+# async def on_message(message:discord.Message):
+#     print ("flag 1")
+#     if message.author.bot :
+#         return
+#     with Session(engine) as session:
+#         todisplay = "message points = "+str(session.get(User,message.author.id).message_points)
+#     await message.reply (todisplay)
+
+#     if message.author.name == "mathieubibi":
+#         await message.reply ("you stink")
+
+    
+       
+        
+
+    ##OLD SQLite
+    
+    # ##if message.author.name in ["mathieubibi","tamercal"]:
+    # if "men" in message.content.lower():
+    #     await message.reply("caca poop shit sheise")
+
+    # ## message.author.id
+    # cur = con.cursor()
+    # res = cur.execute("""
+    #                   INSERT INTO USER_POINTS 
+    #                   (user_id, message_points, date_joined) 
+    #                   VALUES(?,1,?)
+    #                   ON CONFLICT UPDATE SET message_points = message_points + 1
+    #                   """,(message.author.id,message.author.joined_at))
+
+# @bot.command(with_app_command=True)
+# async def display_points(context:cmd.Context,user:discord.User):
+  
+#     cur = con.cursor()
+#     res = cur.execute("""
+#                         SELECT 
+#                         (message_points, activity_points, contribution_points, bias_points) 
+#                         FROM USER_POINTS
+#                         WHERE user_id = ?                      
+#                         """,(user.id,))
+#     toto=(res.fetchone()[0])
+#     await context.reply(toto)
