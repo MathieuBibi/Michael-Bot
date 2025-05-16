@@ -1,4 +1,5 @@
 import discord
+from discord import app_commands
 from discord.ext import commands
 import logging
 from dotenv import load_dotenv
@@ -13,7 +14,7 @@ from datetime import date, timedelta, datetime
 from discord.ext.commands import CommandInvokeError
 import traceback
 import typing
-
+import math
 
 
 
@@ -27,7 +28,19 @@ intents.message_content=True
 intents.members=True
 ##intents.all = True
 
-bot = commands.Bot(command_prefix='m',intents=intents, help_command=commands.MinimalHelpCommand())
+class MichaelBot(commands.Bot):
+    async def setup_hook(self):
+        MY_GUILD = discord.Object(id=455428492171935757)
+        self.tree.copy_global_to(guild=MY_GUILD)
+        await self.tree.sync(guild=MY_GUILD)
+        ##await self.tree.sync()
+
+
+bot = MichaelBot(command_prefix='m!',intents=intents, help_command=commands.MinimalHelpCommand())
+
+
+
+
 #con=sqlite3.connect("MichaelBot.db")
 engine = sa.create_engine("sqlite:///MichaelBot.db", echo=False)
 #engine = sa.create_engine("sqlite:///:memory:", echo=True)
@@ -55,17 +68,103 @@ class User(Base):
 Base.metadata.create_all(engine)
 
 
+def strcommas(number):
+    number_str = str(number)
+    n = len(number_str)
+    if n <= 3:
+        return number_str
+    else:
+        parts = []
+        for i in range(n - 1, -1, -3):
+            parts.append(number_str[max(0, i - 2):i + 1])
+        return ','.join(reversed(parts))
+
 def user_exists_by_id(session:Session,id: int) -> bool:
     existing_user = session.get(User, id)
     return existing_user is not None
 
-def append_message_points_by_id(session:Session,id: int):
+def append_message_points_by_id_and_lengthaward(session:Session,id: int, lengthaward:int):
+    
     user_to_update = session.get(User, id)
-    user_to_update.message_points = user_to_update.message_points+1
+    user_to_update.message_points = user_to_update.message_points+lengthaward
+    
 
 def update_activity_points_by_id(session,id):
     user_to_update = session.get(User,id)
-    
+    seniority = (date.today() - user_to_update.date_joined.date()).days
+    x:int=seniority+1
+    y:float
+
+    ##THE CONTROVERSIAL FORMULA
+    y=0.812154+0.488915*math.log(x) ##THE CONTROVERSIAL FORMULA
+    ##THE CONTROVERSIAL FORMULA
+
+    seniority_multiplier:float = y
+    new_activity_points = int(user_to_update.message_points * seniority_multiplier)
+    user_to_update.activity_points = new_activity_points
+
+def get_total_points_by_id(session,id):
+    usertocheck = session.get(User,id)
+    return usertocheck.activity_points+usertocheck.contribution_points+usertocheck.bias_points
+
+def isroleinroles_byuserandroleid(user:discord.Member,roleid:int):
+    for i in user.roles :
+        if (i.id == roleid):
+            return True
+    return False
+
+def isMat(user:discord.Member):
+    return isroleinroles_byuserandroleid(user,1048218891467374622)
+
+def isAristoCat(user:discord.Member):
+    return isroleinroles_byuserandroleid(user,455516450753478668)
+
+def isNyanCat(user:discord.Member):
+    return isroleinroles_byuserandroleid(user,455515867254489088)
+
+def isKeyboardCat(user:discord.Member):
+    return isroleinroles_byuserandroleid(user,455455855660367885)
+
+def isAncientCat(user:discord.Member):
+    return isroleinroles_byuserandroleid(user,1348061216148291624)
+
+def isYapperCat(user:discord.Member):
+    return isroleinroles_byuserandroleid(user,1336818058328801312)
+
+def isBongocat(user:discord.Member):
+    return isroleinroles_byuserandroleid(user,455515782705577985)
+
+def isTechnocat(user:discord.Member):
+    return isroleinroles_byuserandroleid(user,455515726019821588)
+
+def isLolCat(user:discord.Member):
+    return isroleinroles_byuserandroleid(user,455515673859194892)
+
+def isKitten(user:discord.Member):
+    return isroleinroles_byuserandroleid(user,455515632742694929)
+
+def isGrumpyCat(user:discord.Member):
+    return isroleinroles_byuserandroleid(user,455515592338702336)
+
+def isModOrHigher(user:discord.Member):
+    return (isMat(user) or isAristoCat(user) or isNyanCat(User) or isKeyboardCat(User))
+
+async def checkforpromotion(user:discord.Member,total):
+    adminchannel=bot.get_channel(1018088445551325194)
+    usermention:str = "<@"+ str(user.id) +">"
+    pingmodsandadmins="<@&1048218891467374622> <@&455516450753478668> <@&455515867254489088> <@&455455855660367885>"
+    if (isAncientCat(user)==False)and(total>=332000):
+        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@1348061216148291624>" )
+    elif (isYapperCat(user)==False)and(total>=50000):
+        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@1336818058328801312>" )
+    elif (isBongocat(user)==False)and(total>=11000):
+        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@455515782705577985>" )
+    elif (isTechnocat(user)==False)and(total>=2050):
+        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@455515726019821588>" )
+    elif (isLolCat(user)==False)and(total>=170):
+        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@455515673859194892>" )
+    elif isGrumpyCat(user)and(total>=0):
+        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" climbed from the depths and deserves to be <@455515632742694929> again")
 
 
 @bot.event
@@ -89,31 +188,48 @@ async def autoappend(message:discord.Message):
         return
     if not (isinstance(message.author,discord.Member)):
         return
-
+    length = len(message.content)
+    lengthaward=max(1,int(math.floor(length/150)))
     with Session(engine) as session:
+        
         if not(user_exists_by_id(session,message.author.id)):
-            new_user = User(id=message.author.id, date_joined = message.author.joined_at, message_points=1, activity_points=0, contribution_points=0,bias_points=0)
+            new_user = User(id=message.author.id, date_joined = message.author.joined_at, message_points=lengthaward, activity_points=0, contribution_points=0,bias_points=0)
             session.add(new_user)
         else :
-            append_message_points_by_id(session,message.author.id)
-        
-        seniority = (date.today() - User.getbyid(session,message.author.id).date_joined.date()).days
-
-        ##TODO ACTIVITY POINTS based on seniority & message points
+            append_message_points_by_id_and_lengthaward(session,message.author.id,lengthaward)
+              
+        update_activity_points_by_id(session,message.author.id)
 
         session.commit()
     
-
-
 @bot.listen('on_message')
-async def reactions(message:discord.Message):
+async def promotion_checks(message:discord.Message):
+    if message.author.bot :
+        return
+    if not (isinstance(message.author,discord.Member)):
+        return
+    with Session(engine) as session:
+        author = session.get(User,message.author.id)
+        total=get_total_points_by_id(session,author.id)
+    checkforpromotion(message.author,total)
+        
+        
+    
+        
+
+    
+
+# @bot.listen('on_message')
+# async def reactions(message:discord.Message):
+#     pass
+
     # if message.author.name == "mathieubibi":
     #     with Session(engine) as session:
     #         todisplay = "message points = "+str(session.get(User,message.author.id).message_points)
     #     await message.reply (todisplay)
 
-    if message.author.name == "formingcake1247":
-        await message.reply("get trolled <:trollface:1260219910928203879>")
+    # if message.author.name == "formingcake1247":
+    #     await message.reply("get trolled <:trollface:1260219910928203879>")
     # if message.author.name == "mathieubibi":
     #     if (isinstance(message.author,discord.Member)):
     #         await message.reply("True True yes Member indeed mhhhh")
@@ -130,49 +246,136 @@ async def reactions(message:discord.Message):
     #     await message.reply (todisplay)
     
 
-@bot.command(with_app_command=True)
-async def displaypoints(context:cmd.Context,user:typing.Optional[discord.User]=None):
+@bot.hybrid_command(with_app_command=True)
+async def displaypts(context:cmd.Context,user:typing.Optional[discord.User]=None):
     if user is None :
         user = context.author
     ##print(user.id)
     with Session(engine) as session:
         the_user = session.get(User,user.id)
+        update_activity_points_by_id(session,the_user.id)
         usermention:str = "<@"+ str(user.id) +">"
-        todisplay = usermention + "'s points :" + "\nmessage points = "+str(the_user.message_points) + "\nactivity points = " + str(the_user.activity_points) + "\ndate joined (DD/MM/YYYY) = " + str(the_user.date_joined.day) + "/" + str(the_user.date_joined.month) + "/" + str(the_user.date_joined.year)
+        useractiv = the_user.activity_points
+        usercontrib = the_user.contribution_points
+        userbias = the_user.bias_points
+        todisplay = "> " + usermention + "'s points :" + "\n> activity points = " + strcommas(useractiv)
+        if(usercontrib!=0):
+            todisplay=todisplay+ "\n> contribution points = " + strcommas(usercontrib)
+        if(userbias!=0):
+            todisplay=todisplay+ "\n> bias <:trollface:1260219910928203879> points = " +strcommas(userbias)
+        usertotal = useractiv+usercontrib+userbias
+        todisplay= todisplay + "\n> ## TOTAL POINTS = " + strcommas(usertotal)
+        session.commit()
     await context.reply(todisplay)
 
-@bot.command(with_app_command=True)
-async def ismember(context:cmd.Context,user:typing.Optional[discord.User]=None):
-    if user is None :
-        user = context.author
-    if (isinstance(context.author,discord.Member)):
-        await context.reply("True True yes Member indeed mhhhh")
+@bot.hybrid_command(with_app_command=True)
+async def displayptsv(context:cmd.Context,user:typing.Optional[discord.User]=None):
+    ##if ((1048218891467374622 in context.author.roles) or (455516450753478668 in context.author.roles) or (455515867254489088 in context.author.roles) or (455455855660367885 in context.author.roles)) :    
+    ##if(context.author.guild_permissions.administrator):
+    if (isModOrHigher(context.author)):
+        if user is None :
+            user = context.author
+        ##print(user.id)
+        with Session(engine) as session:
+            the_user = session.get(User,user.id)
+            update_activity_points_by_id(session,the_user.id)
+            seniority = (date.today() - the_user.date_joined.date()).days
+            x:int=seniority+1
+            y:float
+
+            ##THE CONTROVERSIAL FORMULA
+            y=0.812154+0.488915*math.log(x) ##THE CONTROVERSIAL FORMULA
+            ##THE CONTROVERSIAL FORMULA
+
+            usermention:str = "<@"+ str(user.id) +">"
+            usermess = the_user.message_points
+            usercontrib = the_user.contribution_points
+            datetodisplay:str = str(the_user.date_joined.year) + "/" + str(the_user.date_joined.month) + "/" + str(the_user.date_joined.day)
+            seniority_multiplier:float = y
+            useractiv = the_user.activity_points
+            userbias = the_user.bias_points
+            usertotal = useractiv+usercontrib+userbias            
+            todisplay = "> " + usermention + "'s points :" + "\n> message points = "+ strcommas(usermess)+ "\n> date joined (YYYY/MM/DD) = " + datetodisplay + "\n> seniority_multiplier = x" + str(math.ceil(seniority_multiplier*1000)/1000) + "\n> activity points = " + strcommas(useractiv) + "\n> contribution points = " + strcommas(usercontrib) + "\n> bias <:trollface:1260219910928203879> points = " + strcommas(userbias) + "\n> ## TOTAL POINTS = " + strcommas(usertotal)
+            session.commit()
+        await context.reply(todisplay)
     else:
-        await context.reply("fuck off")
+        await context.reply("fuck off, low rank")
 
-@bot.command(with_app_command=True)
-async def forcemessagepoints(context:cmd.Context, message_value:int,user:discord.User):
+# @bot.hybrid_command(with_app_command=True)
+# async def ismember(context:cmd.Context,user:typing.Optional[discord.User]=None):
+#     if user is None :
+#         user = context.author
+#     if (isinstance(context.author,discord.Member)):
+#         await context.reply("True True yes Member indeed mhhhh")
+#     else:
+#         await context.reply("fuck off")
+
+@bot.hybrid_command(with_app_command=True)
+async def forcemsgpts(context:cmd.Context, message_value:int,user:discord.User):
     ##if ((1048218891467374622 in context.author.roles) or (455516450753478668 in context.author.roles) or (455515867254489088 in context.author.roles) or (455455855660367885 in context.author.roles)) :
-    # await context.reply("test")
-
-    # await context.reply(message_value)
-
-    usermention:str = "<@"+ str(user.id) +">"
-    await context.reply(usermention)
-
     if(context.author.guild_permissions.administrator):
         usermention:str = "<@"+ str(user.id) +">"
-        await context.reply(usermention)
+        the_guys_message_points:int
         with Session(engine) as session:
             
             the_guy = session.get(User,user.id)
             the_guy.message_points= message_value            
-            the_guys_message_points:int= the_guy.message_points ##to display later outside of the session
+            the_guys_message_points= the_guy.message_points ##to display later outside of the session
             session.commit()
-            usermention:str = "<@"+ str(user.id) +">"
-            await context.reply(usermention + " now has "+ the_guys_message_points +" activity points")
+            await context.reply(usermention + " now has "+ strcommas(the_guys_message_points) +' message points \n-# (keep in mind, "message points" are just a middle calculation step and NOT the same as activity points !)')
     else:
         await context.reply("fuck off, you're not a mod/admin, you're not elligible to use this command")
 
+@bot.hybrid_command(with_app_command=True)
+async def awardmsg(context:cmd.Context, award_value:int,user:discord.User):
+    ##if ((1048218891467374622 in context.author.roles) or (455516450753478668 in context.author.roles) or (455515867254489088 in context.author.roles) or (455455855660367885 in context.author.roles)) :
+    if(context.author.guild_permissions.administrator):
+        usermention:str = "<@"+ str(user.id) +">"
+        the_guys_message_points:int
+        with Session(engine) as session:
+            
+            the_guy = session.get(User,user.id)
+            the_guy.message_points= the_guy.message_points + award_value     
+            the_guys_message_points= the_guy.message_points ##to display later outside of the session
+            session.commit()
+            await context.reply(usermention + " now has "+ strcommas(the_guys_message_points) +' message points\n-# (keep in mind, "message points" are just a middle calculation step and NOT the same as activity points !)')
+    else:
+        await context.reply("fuck off, you're not a mod/admin, you're not elligible to use this command")
+
+@bot.hybrid_command(with_app_command=True)
+async def awardcontrib(context:cmd.Context, award_value:int,user:discord.User):
+    ##if ((1048218891467374622 in context.author.roles) or (455516450753478668 in context.author.roles) or (455515867254489088 in context.author.roles) or (455455855660367885 in context.author.roles)) :
+    if(context.author.guild_permissions.administrator):
+        usermention:str = "<@"+ str(user.id) +">"
+        the_guys_contrib_points:int
+        with Session(engine) as session:
+            
+            the_guy = session.get(User,user.id)
+            the_guy.contribution_points = the_guy.contribution_points + award_value            
+            the_guys_contrib_points= the_guy.contribution_points ##to display later outside of the session
+            session.commit()
+            await context.reply(usermention + " now has "+ strcommas(the_guys_contrib_points) +" contribution points")
+    else:
+        await context.reply("fuck off, you're not admin, you're not elligible to use this command")
+
+
+@bot.hybrid_command(with_app_command=True)
+async def awardbias(context:cmd.Context, award_value:int,user:discord.User):
+    ##if ((1048218891467374622 in context.author.roles) or (455516450753478668 in context.author.roles) or (455515867254489088 in context.author.roles) or (455455855660367885 in context.author.roles)) :
+    if(context.author.guild_permissions.administrator):
+        usermention:str = "<@"+ str(user.id) +">"
+        the_guys_bias_points:int
+        with Session(engine) as session:
+            
+            the_guy = session.get(User,user.id)
+            the_guy.bias_points = the_guy.bias_points + award_value            
+            the_guys_bias_points= the_guy.bias_points ##to display later outside of the session
+            session.commit()
+        await context.reply("Through the power of admin abuse (<:trollface:1260219910928203879>) " + usermention + " now has "+ strcommas(the_guys_bias_points) +" bias points")
+    else:
+        await context.reply("fuck off, low rank, no admin abuse for you <:trollface:1260219910928203879>")
+
+    
+    
 
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
