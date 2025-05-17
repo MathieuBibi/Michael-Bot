@@ -10,6 +10,8 @@ TECHNOCATROLE:int=455515726019821588
 LOLCATROLE:int=455515673859194892
 KITTENROLE:int=455515632742694929
 GRUMPYCATROLE:int=455515592338702336
+ADMINCHANNEL=1018088445551325194
+MICHAELCHANNEL=1373432540869955584
 
 import discord
 from discord import app_commands, Object
@@ -183,14 +185,20 @@ def update_NotifTrack_for_Nekotopia(session:Session,the_user:discord.Member):
 
 def strcommas(number):
     number_str = str(number)
+    if number < 0:
+        sign = "-"
+        number_str = number_str[1:]
+    else:
+        sign = ""
+
     n = len(number_str)
     if n <= 3:
-        return number_str
+        return sign + number_str
     else:
         parts = []
         for i in range(n - 1, -1, -3):
             parts.append(number_str[max(0, i - 2):i + 1])
-        return ','.join(reversed(parts))
+        return sign + ','.join(reversed(parts))
 
 def user_exists_by_id(session:Session,id: int) -> bool:
     existing_user = session.get(User, id)
@@ -282,31 +290,31 @@ async def checkforpromotion(the_guy:discord.Member,total):
     with Session(engine) as session:
         
         update_NotifTrack_for_Nekotopia(session,the_guy)
-        adminchannel=bot.get_channel(1018088445551325194)
+        channeltoping=bot.get_channel(MICHAELCHANNEL)
         usermention:str = "<@"+ str(the_guy.id) +">"
         pingmodsandadmins="<@&1373274471288541194>"
         if ((has_role_byid(the_guy,ANCIENTCATROLE))==False)and(total>=332000)and((session.get(NotifTrack,(the_guy.id,ANCIENTCATROLE)).status==False)):
-            await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&1348061216148291624>" )
+            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&1348061216148291624>" )
             session.get(NotifTrack,(the_guy.id,ANCIENTCATROLE)).status=True
 
         elif ((has_role_byid(the_guy,YAPPERCATROLE))==False)and(total>=50000)and((session.get(NotifTrack,(the_guy.id,YAPPERCATROLE)).status==False)):
-            await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&1336818058328801312>" )
+            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&1336818058328801312>" )
             session.get(NotifTrack,(the_guy.id,YAPPERCATROLE)).status=True
 
         elif ((has_role_byid(the_guy,BONGOCATROLE))==False)and(total>=11000)and((session.get(NotifTrack,(the_guy.id,BONGOCATROLE)).status==False)):
-            await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515782705577985>" )
+            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515782705577985>" )
             session.get(NotifTrack,(the_guy.id,BONGOCATROLE)).status=True
 
         elif ((has_role_byid(the_guy,TECHNOCATROLE))==False)and(total>=2050)and((session.get(NotifTrack,(the_guy.id,TECHNOCATROLE)).status==False)):
-            await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515726019821588>" )
+            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515726019821588>" )
             session.get(NotifTrack,(the_guy.id,TECHNOCATROLE)).status=True
 
         elif ((has_role_byid(the_guy,LOLCATROLE))==False)and(total>=170)and((session.get(NotifTrack,(the_guy.id,LOLCATROLE)).status==False)):
-            await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515673859194892>" )
+            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515673859194892>" )
             session.get(NotifTrack,(the_guy.id,LOLCATROLE)).status=True
 
         elif (has_role_byid(the_guy,GRUMPYCATROLE))and(total>=170)and((session.get(NotifTrack,(the_guy.id,KITTENROLE)).status==False)):
-            await adminchannel.send(pingmodsandadmins+" I think "+usermention+" climbed from the depths and deserves to be <@&455515632742694929> again")
+            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" climbed from the depths and deserves to be <@&455515632742694929> again")
             session.get(NotifTrack,(the_guy.id,KITTENROLE)).status=True
             
         session.commit()
