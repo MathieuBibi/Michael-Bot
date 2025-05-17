@@ -1,5 +1,18 @@
+##NEKOTOPIA ROLES IDs
+MATROLE:int=1048218891467374622
+ARISTOCATROLE:int=455516450753478668
+NYANCATROLE:int=455515867254489088
+KEYBOARDCATROLE:int=455455855660367885
+ANCIENTCATROLE:int=1348061216148291624
+YAPPERCATROLE:int=1336818058328801312
+BONGOCATROLE:int=455515782705577985
+TECHNOCATROLE:int=455515726019821588
+LOLCATROLE:int=455515673859194892
+KITTENROLE:int=455515632742694929
+GRUMPYCATROLE:int=455515592338702336
+
 import discord
-from discord import app_commands
+from discord import app_commands, Object
 from discord.ext import commands
 import logging
 from dotenv import load_dotenv
@@ -9,12 +22,18 @@ from discord.ext import commands as cmd
 import sqlalchemy as sa
 import logging
 #from sqlalchemy import 
-from sqlalchemy.orm import Mapped, mapped_column, sessionmaker, declarative_base, Session
+from sqlalchemy.orm import Mapped, mapped_column, sessionmaker, declarative_base, Session, DeclarativeBase, relationship
 from datetime import date, timedelta, datetime
 from discord.ext.commands import CommandInvokeError
 import traceback
 import typing
 import math
+from typing import List
+from typing import Optional
+from sqlalchemy import ForeignKey
+from sqlalchemy import String
+from sqlalchemy import select
+
 
 
 
@@ -36,7 +55,7 @@ class MichaelBot(commands.Bot):
         ##await self.tree.sync()
 
 
-bot = MichaelBot(command_prefix='m!',intents=intents, help_command=commands.MinimalHelpCommand())
+bot = MichaelBot(command_prefix='m!',intents=intents, help_command=None)
 
 
 
@@ -51,21 +70,115 @@ Base = declarative_base()
 metadata = sa.MetaData()
 
 
+
+
 class User(Base):
     __tablename__ = 'users'
     id:Mapped[int] = mapped_column(primary_key=True) 
     date_joined:Mapped[datetime] = mapped_column()
-    message_points:Mapped[int] = mapped_column()
-    activity_points:Mapped[int] = mapped_column()
-    contribution_points:Mapped[int] = mapped_column()
-    bias_points:Mapped[int] = mapped_column()
+    message_points:Mapped[int] = mapped_column(default=0)
+    activity_points:Mapped[int] = mapped_column(default=0)
+    contribution_points:Mapped[int] = mapped_column(default=0)
+    bias_points:Mapped[int] = mapped_column(default=0)
+
+    notified_for_promotions_each_roles:Mapped[List["NotifTrack"]] = relationship(
+        back_populates="user",cascade="all,delete-orphan"
+    )
 
 
     @classmethod
     def getbyid(cls,session,id) -> 'User':
         return session.get(cls,id)
 
+class NotifTrack(Base):
+    __tablename__ = 'notiftrack'
+    user_id:Mapped[int] = mapped_column(ForeignKey("users.id"),primary_key=True)
+    role_id:Mapped[int] = mapped_column(primary_key=True)
+    status:Mapped[bool] = mapped_column(default=False)
+    user:Mapped["User"] = relationship(back_populates="notified_for_promotions_each_roles")
+
+    @classmethod
+    def getbyids_user_roles(cls,session,user_id,role_id) -> 'NotifTrack':
+        smt = session.get(NotifTrack,(user_id,role_id))
+        return smt
+
 Base.metadata.create_all(engine)
+
+
+
+def initialize_NotifTrack_for_Nekotopia_byid(session:Session,the_user_id:int):
+    kitten_object=session.get(NotifTrack,(the_user_id,KITTENROLE))
+    if (kitten_object==None):
+        kitten=NotifTrack(user_id=the_user_id,role_id=KITTENROLE,status=False)
+        session.add(kitten)
+    else:
+        kitten_object.status=False
+    
+    lolcat_object=session.get(NotifTrack,(the_user_id,LOLCATROLE))
+    if (lolcat_object==None):
+        lolcat=NotifTrack(user_id=the_user_id,role_id=LOLCATROLE,status=False)
+        session.add(lolcat)
+    else:
+        lolcat_object.status=False
+
+    technocat_object=session.get(NotifTrack,(the_user_id,TECHNOCATROLE))
+    if (technocat_object==None):
+        technocat=NotifTrack(user_id=the_user_id,role_id=TECHNOCATROLE,status=False)
+        session.add(technocat)
+    else:
+        technocat_object.status=False
+    
+    bongocat_object=session.get(NotifTrack,(the_user_id,BONGOCATROLE))
+    if (bongocat_object==None):
+        bongocat=NotifTrack(user_id=the_user_id,role_id=BONGOCATROLE,status=False)
+        session.add(bongocat)
+    else:
+        bongocat_object.status=False
+    
+    yappercat_object=session.get(NotifTrack,(the_user_id,YAPPERCATROLE))
+    if (yappercat_object==None):
+        yappercat=NotifTrack(user_id=the_user_id,role_id=YAPPERCATROLE,status=False)
+        session.add(yappercat)
+    else:
+        yappercat_object.status=False
+
+    ancientcat_object=session.get(NotifTrack,(the_user_id,ANCIENTCATROLE))
+    if (ancientcat_object==None):
+        ancientcat=NotifTrack(user_id=the_user_id,role_id=ANCIENTCATROLE,status=False)
+        session.add(ancientcat)
+    else:
+        ancientcat_object.status=False
+
+def update_NotifTrack_for_Nekotopia(session:Session,the_user:discord.Member):
+    initialize_NotifTrack_for_Nekotopia_byid(session,the_user.id)
+    if has_role_byid(the_user,ANCIENTCATROLE) :
+        session.get(NotifTrack,(the_user.id,ANCIENTCATROLE)).status=True
+        session.get(NotifTrack,(the_user.id,YAPPERCATROLE)).status=True
+        session.get(NotifTrack,(the_user.id,BONGOCATROLE)).status=True
+        session.get(NotifTrack,(the_user.id,TECHNOCATROLE)).status=True
+        session.get(NotifTrack,(the_user.id,LOLCATROLE)).status=True
+        session.get(NotifTrack,(the_user.id,KITTENROLE)).status=True
+    elif has_role_byid(the_user,YAPPERCATROLE) :
+        session.get(NotifTrack,(the_user.id,YAPPERCATROLE)).status=True
+        session.get(NotifTrack,(the_user.id,BONGOCATROLE)).status=True
+        session.get(NotifTrack,(the_user.id,TECHNOCATROLE)).status=True
+        session.get(NotifTrack,(the_user.id,LOLCATROLE)).status=True
+        session.get(NotifTrack,(the_user.id,KITTENROLE)).status=True
+    elif has_role_byid(the_user,BONGOCATROLE) :
+        session.get(NotifTrack,(the_user.id,BONGOCATROLE)).status=True
+        session.get(NotifTrack,(the_user.id,TECHNOCATROLE)).status=True
+        session.get(NotifTrack,(the_user.id,LOLCATROLE)).status=True
+        session.get(NotifTrack,(the_user.id,KITTENROLE)).status=True
+    elif has_role_byid(the_user,TECHNOCATROLE) :
+        session.get(NotifTrack,(the_user.id,TECHNOCATROLE)).status=True
+        session.get(NotifTrack,(the_user.id,LOLCATROLE)).status=True
+        session.get(NotifTrack,(the_user.id,KITTENROLE)).status=True
+    elif has_role_byid(the_user,LOLCATROLE) :
+        session.get(NotifTrack,(the_user.id,LOLCATROLE)).status=True
+        session.get(NotifTrack,(the_user.id,KITTENROLE)).status=True
+    elif has_role_byid(the_user,KITTENROLE) :
+        session.get(NotifTrack,(the_user.id,KITTENROLE)).status=True
+
 
 
 def strcommas(number):
@@ -107,44 +220,60 @@ def get_total_points_by_id(session,id):
     usertocheck = session.get(User,id)
     return usertocheck.activity_points+usertocheck.contribution_points+usertocheck.bias_points
 
-def isroleinroles_byuserandroleid(user:discord.Member,roleid:int):
-    for i in user.roles :
-        if (i.id == roleid):
-            return True
+# def isroleinroles_byuserandroleid(user:discord.Member,roleid:int):
+#     for i in user.roles :
+#         if (i.id == roleid):
+#             return True
+#     return False
+
+def has_role_byid(user:discord.Member,roleid:int):
+    role = user.guild.get_role(roleid)
+    if role in user.roles:
+        return True
     return False
 
+
+#region old rolecheck functions
 def isMat(user:discord.Member):
-    return isroleinroles_byuserandroleid(user,1048218891467374622)
+    return has_role_byid(user,1048218891467374622)
 
 def isAristoCat(user:discord.Member):
-    return isroleinroles_byuserandroleid(user,455516450753478668)
+    return has_role_byid(user,455516450753478668)
 
 def isNyanCat(user:discord.Member):
-    return isroleinroles_byuserandroleid(user,455515867254489088)
+    return has_role_byid(user,455515867254489088)
 
 def isKeyboardCat(user:discord.Member):
-    return isroleinroles_byuserandroleid(user,455455855660367885)
+    return has_role_byid(user,455455855660367885)
 
 def isAncientCat(user:discord.Member):
-    return isroleinroles_byuserandroleid(user,1348061216148291624)
+    return has_role_byid(user,1348061216148291624)
 
 def isYapperCat(user:discord.Member):
-    return isroleinroles_byuserandroleid(user,1336818058328801312)
+    return has_role_byid(user,1336818058328801312)
 
 def isBongocat(user:discord.Member):
-    return isroleinroles_byuserandroleid(user,455515782705577985)
+    return has_role_byid(user,455515782705577985)
 
 def isTechnocat(user:discord.Member):
-    return isroleinroles_byuserandroleid(user,455515726019821588)
+    return has_role_byid(user,455515726019821588)
 
 def isLolCat(user:discord.Member):
-    return isroleinroles_byuserandroleid(user,455515673859194892)
+    return has_role_byid(user,455515673859194892)
 
 def isKitten(user:discord.Member):
-    return isroleinroles_byuserandroleid(user,455515632742694929)
+    return has_role_byid(user,455515632742694929)
 
 def isGrumpyCat(user:discord.Member):
-    return isroleinroles_byuserandroleid(user,455515592338702336)
+    return has_role_byid(user,455515592338702336)
+    # role = user.guild.get_role(455515592338702336)
+    # if role in user.roles:
+    #     return True
+    # return False
+    ##return isroleinroles_byuserandroleid(user,455515592338702336)
+
+#endregion
+
 
 def isModOrHigher(user:discord.Member):
     return (isMat(user) or isAristoCat(user) or isNyanCat(User) or isKeyboardCat(User))
@@ -152,19 +281,19 @@ def isModOrHigher(user:discord.Member):
 async def checkforpromotion(user:discord.Member,total):
     adminchannel=bot.get_channel(1018088445551325194)
     usermention:str = "<@"+ str(user.id) +">"
-    pingmodsandadmins="<@&1048218891467374622> <@&455516450753478668> <@&455515867254489088> <@&455455855660367885>"
+    pingmodsandadmins="<@&1373274471288541194>"
     if (isAncientCat(user)==False)and(total>=332000):
-        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@1348061216148291624>" )
+        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&1348061216148291624>" )
     elif (isYapperCat(user)==False)and(total>=50000):
-        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@1336818058328801312>" )
+        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&1336818058328801312>" )
     elif (isBongocat(user)==False)and(total>=11000):
-        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@455515782705577985>" )
+        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515782705577985>" )
     elif (isTechnocat(user)==False)and(total>=2050):
-        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@455515726019821588>" )
+        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515726019821588>" )
     elif (isLolCat(user)==False)and(total>=170):
-        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@455515673859194892>" )
+        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515673859194892>" )
     elif isGrumpyCat(user)and(total>=0):
-        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" climbed from the depths and deserves to be <@455515632742694929> again")
+        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" climbed from the depths and deserves to be <@&455515632742694929> again")
 
 
 @bot.event
@@ -193,7 +322,7 @@ async def autoappend(message:discord.Message):
     with Session(engine) as session:
         
         if not(user_exists_by_id(session,message.author.id)):
-            new_user = User(id=message.author.id, date_joined = message.author.joined_at, message_points=lengthaward, activity_points=0, contribution_points=0,bias_points=0)
+            new_user = User(id=message.author.id, date_joined = message.author.joined_at, message_points=lengthaward, activity_points=0, contribution_points=0,bias_points=0)## ,notified_admins=False (last arg)
             session.add(new_user)
         else :
             append_message_points_by_id_and_lengthaward(session,message.author.id,lengthaward)
@@ -202,16 +331,16 @@ async def autoappend(message:discord.Message):
 
         session.commit()
     
-@bot.listen('on_message')
-async def promotion_checks(message:discord.Message):
-    if message.author.bot :
-        return
-    if not (isinstance(message.author,discord.Member)):
-        return
-    with Session(engine) as session:
-        author = session.get(User,message.author.id)
-        total=get_total_points_by_id(session,author.id)
-    checkforpromotion(message.author,total)
+# @bot.listen('on_message')
+# async def promotion_checks(message:discord.Message):
+#     if message.author.bot :
+#         return
+#     if not (isinstance(message.author,discord.Member)):
+#         return
+#     with Session(engine) as session:
+#         author = session.get(User,message.author.id)
+#         total=get_total_points_by_id(session,author.id)
+#     ##await checkforpromotion(message.author,total)
         
         
     
@@ -292,23 +421,19 @@ async def displayptsv(context:cmd.Context,user:typing.Optional[discord.User]=Non
             usercontrib = the_user.contribution_points
             datetodisplay:str = str(the_user.date_joined.year) + "/" + str(the_user.date_joined.month) + "/" + str(the_user.date_joined.day)
             seniority_multiplier:float = y
+            ##notified:bool=False##the_user.notified_admins
             useractiv = the_user.activity_points
             userbias = the_user.bias_points
             usertotal = useractiv+usercontrib+userbias            
-            todisplay = "> " + usermention + "'s points :" + "\n> message points = "+ strcommas(usermess)+ "\n> date joined (YYYY/MM/DD) = " + datetodisplay + "\n> seniority_multiplier = x" + str(math.ceil(seniority_multiplier*1000)/1000) + "\n> activity points = " + strcommas(useractiv) + "\n> contribution points = " + strcommas(usercontrib) + "\n> bias <:trollface:1260219910928203879> points = " + strcommas(userbias) + "\n> ## TOTAL POINTS = " + strcommas(usertotal)
+            todisplay = "> " + usermention + "'s points :" + "\n> message points = "+ strcommas(usermess)+ "\n> date joined (YYYY/MM/DD) = " + datetodisplay + "\n> seniority_multiplier = x" + str(math.ceil(seniority_multiplier*1000)/1000)  + "\n> activity points = " + strcommas(useractiv) + "\n> contribution points = " + strcommas(usercontrib) + "\n> bias <:trollface:1260219910928203879> points = " + strcommas(userbias) + "\n> ## TOTAL POINTS = " + strcommas(usertotal) ## "\n> notified admins = " + str(notified) + (at some points)
             session.commit()
         await context.reply(todisplay)
     else:
         await context.reply("fuck off, low rank")
 
-# @bot.hybrid_command(with_app_command=True)
-# async def ismember(context:cmd.Context,user:typing.Optional[discord.User]=None):
-#     if user is None :
-#         user = context.author
-#     if (isinstance(context.author,discord.Member)):
-#         await context.reply("True True yes Member indeed mhhhh")
-#     else:
-#         await context.reply("fuck off")
+@bot.hybrid_command(with_app_command=True)
+async def help(context:cmd.context):
+    await context.reply("## List of Michael commands :\ndisplaypts\n> displays the points of a user :)\ndisplayptsv\n> verbose version of /displaypts, avaliable for moderators and up\n> it also shows more in-depth data, stats for in-between calculation steps\nnawardcontrib\n> allows an admin to award someone with contribution points to reward them\n> (for hosting giveaways, helping people, contributing to dojo decorations, writing guides etc...)\nforcemsgpts\n> allows an admin to edit a user's message points ammount\n> (used to repair false message point count)\nawardmsg\n> allows an admin to give someone exra message points \n> (for exemple, to reward someone for VC activity (recomended 1min = 1point approximately))\nawardbias\n> allows admins to award biassed points to users for no reason through the power of admin abuse <:trollface:1260219910928203879>\n The Bot is still in early developpement/prototype form, many more features and commands coming soon !")
 
 @bot.hybrid_command(with_app_command=True)
 async def forcemsgpts(context:cmd.Context, message_value:int,user:discord.User):
@@ -371,7 +496,7 @@ async def awardbias(context:cmd.Context, award_value:int,user:discord.User):
             the_guy.bias_points = the_guy.bias_points + award_value            
             the_guys_bias_points= the_guy.bias_points ##to display later outside of the session
             session.commit()
-        await context.reply("Through the power of admin abuse (<:trollface:1260219910928203879>) " + usermention + " now has "+ strcommas(the_guys_bias_points) +" bias points")
+        await context.reply("Through the power of admin abuse <:trollface:1260219910928203879> " + usermention + " now has "+ strcommas(the_guys_bias_points) +" bias points")
     else:
         await context.reply("fuck off, low rank, no admin abuse for you <:trollface:1260219910928203879>")
 
