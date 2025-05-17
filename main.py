@@ -278,22 +278,38 @@ def isGrumpyCat(user:discord.Member):
 def isModOrHigher(user:discord.Member):
     return (isMat(user) or isAristoCat(user) or isNyanCat(User) or isKeyboardCat(User))
 
-async def checkforpromotion(user:discord.Member,total):
-    adminchannel=bot.get_channel(1018088445551325194)
-    usermention:str = "<@"+ str(user.id) +">"
-    pingmodsandadmins="<@&1373274471288541194>"
-    if (isAncientCat(user)==False)and(total>=332000):
-        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&1348061216148291624>" )
-    elif (isYapperCat(user)==False)and(total>=50000):
-        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&1336818058328801312>" )
-    elif (isBongocat(user)==False)and(total>=11000):
-        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515782705577985>" )
-    elif (isTechnocat(user)==False)and(total>=2050):
-        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515726019821588>" )
-    elif (isLolCat(user)==False)and(total>=170):
-        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515673859194892>" )
-    elif isGrumpyCat(user)and(total>=0):
-        await adminchannel.send(pingmodsandadmins+" I think "+usermention+" climbed from the depths and deserves to be <@&455515632742694929> again")
+async def checkforpromotion(the_guy:discord.Member,total):
+    with Session(engine) as session:
+        
+        update_NotifTrack_for_Nekotopia(session,the_guy)
+        adminchannel=bot.get_channel(1018088445551325194)
+        usermention:str = "<@"+ str(the_guy.id) +">"
+        pingmodsandadmins="<@&1373274471288541194>"
+        if ((has_role_byid(the_guy,ANCIENTCATROLE))==False)and(total>=332000)and((session.get(NotifTrack,(the_guy.id,ANCIENTCATROLE)).status==False)):
+            await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&1348061216148291624>" )
+            session.get(NotifTrack,(the_guy.id,ANCIENTCATROLE)).status=True
+
+        elif ((has_role_byid(the_guy,YAPPERCATROLE))==False)and(total>=50000)and((session.get(NotifTrack,(the_guy.id,YAPPERCATROLE)).status==False)):
+            await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&1336818058328801312>" )
+            session.get(NotifTrack,(the_guy.id,YAPPERCATROLE)).status=True
+
+        elif ((has_role_byid(the_guy,BONGOCATROLE))==False)and(total>=11000)and((session.get(NotifTrack,(the_guy.id,BONGOCATROLE)).status==False)):
+            await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515782705577985>" )
+            session.get(NotifTrack,(the_guy.id,BONGOCATROLE)).status=True
+
+        elif ((has_role_byid(the_guy,TECHNOCATROLE))==False)and(total>=2050)and((session.get(NotifTrack,(the_guy.id,TECHNOCATROLE)).status==False)):
+            await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515726019821588>" )
+            session.get(NotifTrack,(the_guy.id,TECHNOCATROLE)).status=True
+
+        elif ((has_role_byid(the_guy,LOLCATROLE))==False)and(total>=170)and((session.get(NotifTrack,(the_guy.id,LOLCATROLE)).status==False)):
+            await adminchannel.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515673859194892>" )
+            session.get(NotifTrack,(the_guy.id,LOLCATROLE)).status=True
+
+        elif (has_role_byid(the_guy,GRUMPYCATROLE))and(total>=170)and((session.get(NotifTrack,(the_guy.id,KITTENROLE)).status==False)):
+            await adminchannel.send(pingmodsandadmins+" I think "+usermention+" climbed from the depths and deserves to be <@&455515632742694929> again")
+            session.get(NotifTrack,(the_guy.id,KITTENROLE)).status=True
+            
+        session.commit()
 
 
 @bot.event
@@ -331,16 +347,16 @@ async def autoappend(message:discord.Message):
 
         session.commit()
     
-# @bot.listen('on_message')
-# async def promotion_checks(message:discord.Message):
-#     if message.author.bot :
-#         return
-#     if not (isinstance(message.author,discord.Member)):
-#         return
-#     with Session(engine) as session:
-#         author = session.get(User,message.author.id)
-#         total=get_total_points_by_id(session,author.id)
-#     ##await checkforpromotion(message.author,total)
+@bot.listen('on_message')
+async def promotion_checks(message:discord.Message):
+    if message.author.bot :
+        return
+    if not (isinstance(message.author,discord.Member)):
+        return
+    with Session(engine) as session:
+        author = session.get(User,message.author.id)
+        total=get_total_points_by_id(session,author.id)
+    await checkforpromotion(message.author,total)
         
         
     
