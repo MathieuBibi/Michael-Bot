@@ -339,27 +339,27 @@ async def checkforpromotion(the_guy:discord.Member,total:int):
         usermention:str = "<@"+ str(the_guy.id) +">"
         pingmodsandadmins="<@&1373274471288541194>"
         if ((has_role_byid(the_guy,ANCIENTCATROLE))==False)and(total>=332000)and((session.get(NotifTrack,(the_guy.id,ANCIENTCATROLE)).status==False)):
-            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&1348061216148291624>\nDon't forget to promote them IN GAME first!" )
+            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&1348061216148291624>\nDon't forget to promote them IN GAME first!",silent=True )
             session.get(NotifTrack,(the_guy.id,ANCIENTCATROLE)).status=True
 
         elif ((has_role_byid(the_guy,YAPPERCATROLE))==False)and(total>=50000)and((session.get(NotifTrack,(the_guy.id,YAPPERCATROLE)).status==False)):
-            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&1336818058328801312>\nDon't forget to promote them IN GAME first!" )
+            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&1336818058328801312>\nDon't forget to promote them IN GAME first!",silent=True )
             session.get(NotifTrack,(the_guy.id,YAPPERCATROLE)).status=True
 
         elif ((has_role_byid(the_guy,BONGOCATROLE))==False)and(total>=11000)and((session.get(NotifTrack,(the_guy.id,BONGOCATROLE)).status==False)):
-            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515782705577985>\nDon't forget to promote them IN GAME first!" )
+            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515782705577985>\nDon't forget to promote them IN GAME first!",silent=True )
             session.get(NotifTrack,(the_guy.id,BONGOCATROLE)).status=True
 
         elif ((has_role_byid(the_guy,TECHNOCATROLE))==False)and(total>=2050)and((session.get(NotifTrack,(the_guy.id,TECHNOCATROLE)).status==False)):
-            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515726019821588>\nDon't forget to promote them IN GAME first!" )
+            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515726019821588>\nDon't forget to promote them IN GAME first!",silent=True )
             session.get(NotifTrack,(the_guy.id,TECHNOCATROLE)).status=True
 
         elif ((has_role_byid(the_guy,LOLCATROLE))==False)and(total>=170)and((session.get(NotifTrack,(the_guy.id,LOLCATROLE)).status==False)):
-            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515673859194892>\nDon't forget to promote them IN GAME first!" )
+            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515673859194892>\nDon't forget to promote them IN GAME first!",silent=True )
             session.get(NotifTrack,(the_guy.id,LOLCATROLE)).status=True
 
-        elif (has_role_byid(the_guy,GRUMPYCATROLE))and(total>=170)and((session.get(NotifTrack,(the_guy.id,KITTENROLE)).status==False)):
-            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" climbed from the depths and deserves to be <@&455515632742694929> again.\nDon't forget to promote them IN GAME first!")
+        elif (has_role_byid(the_guy,GRUMPYCATROLE))and(total>=0)and((session.get(NotifTrack,(the_guy.id,KITTENROLE)).status==False)):
+            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" climbed from the depths and deserves to be <@&455515632742694929> again.\nDon't forget to promote them IN GAME first!",silent=True )
             session.get(NotifTrack,(the_guy.id,KITTENROLE)).status=True
             
         session.commit()
@@ -459,7 +459,7 @@ async def resetnotiftrack(context:cmd.Context,user:typing.Optional[discord.User]
         initialize_NotifTrack_for_Nekotopia_byid(session,user.id)
         update_NotifTrack_for_Nekotopia(session,user)
         session.commit()
-    await context.reply("The notification tracker for promotions of <@" + str(user.id) +"> has been reset.")
+    await context.reply("The notification tracker for promotions of <@" + str(user.id) +"> has been reset.",silent=True)
     
 
 @bot.hybrid_command(with_app_command=True)
@@ -486,7 +486,7 @@ async def displayscore(context:cmd.Context,user:typing.Optional[discord.User]=No
         usertotal = useractivscore+usercontribscore+userbias
         todisplay= todisplay + "\n> ## TOTAL SCORE = " + strcommas(usertotal)
         session.commit()
-    await context.reply(todisplay)
+    await context.reply(todisplay,silent=True)
 
 @bot.hybrid_command(with_app_command=True)
 async def displayscorev(context:cmd.Context,user:typing.Optional[discord.User]=None):
@@ -523,7 +523,7 @@ async def displayscorev(context:cmd.Context,user:typing.Optional[discord.User]=N
             usertotal = useractivscore+usercontribscore+userbias
             todisplay = "> " + usermention + "'s verbose score breakdown :" + "\n> activity points = "+ strcommas(useractivpts)+ "\n> contribution points = " + strcommas(usercontribpts) + "\n> date joined (YYYY/MM/DD) = " + datetodisplay + "\n> seniority_multiplier = x" + str(math.ceil(seniority_multiplier*1000)/1000)  + "\n> activity score = " + strcommas(useractivscore) + "\n> contribution score = " + strcommas(usercontribscore) + "\n> bias <:trollface:1260219910928203879> score = " + strcommas(userbias) + "\n> ## TOTAL SCORE = " + strcommas(usertotal) ## "\n> notified admins = " + str(notified) + (at some points)
             session.commit()
-        await context.reply(todisplay)
+        await context.reply(todisplay,silent=True)
     else:
         await context.reply("fuck off, low rank")
 
@@ -545,10 +545,10 @@ async def forceactivpts(context:cmd.Context, activity_value:int,user:discord.Use
             update_scores_by_id(session,the_guy.id)
             total = get_total_points_by_id(session,the_guy.id)
             session.commit()
-            await context.reply(usermention + " now has "+ strcommas(the_guys_activity_points) +' message points \n-# (keep in mind, "activity points" are just a middle calculation step and NOT the same as activity score !)')
+            await context.reply(usermention + " now has "+ strcommas(the_guys_activity_points) +' message points \n-# (keep in mind, "activity points" are just a middle calculation step and NOT the same as activity score !)',silent=True)
             await checkforpromotion(user,total)
     else:
-        await context.reply("fuck off, you're not a mod/admin, you're not elligible to use this command")
+        await context.reply("fuck off, you're not admin, you're not elligible to use this command")
 
 @bot.hybrid_command(with_app_command=True)
 async def awardactiv(context:cmd.Context, award_value:int,user:discord.User):
@@ -564,10 +564,10 @@ async def awardactiv(context:cmd.Context, award_value:int,user:discord.User):
             update_scores_by_id(session,the_guy.id)
             total = get_total_points_by_id(session,the_guy.id)
             session.commit()
-            await context.reply(usermention + " now has "+ strcommas(the_guys_activity_points) +' activity points\n-# (keep in mind, "activity points" are just a middle calculation step and NOT the same as activity score !)')
+            await context.reply(usermention + " now has "+ strcommas(the_guys_activity_points) +' activity points\n-# (keep in mind, "activity points" are just a middle calculation step and NOT the same as activity score !)',silent=True)
             await checkforpromotion(user,total)
     else:
-        await context.reply("fuck off, you're not a mod/admin, you're not elligible to use this command")
+        await context.reply("fuck off, you're not admin, you're not elligible to use this command")
 
 @bot.hybrid_command(with_app_command=True)
 async def awardcontrib(context:cmd.Context, award_value:int,user:discord.User):
@@ -583,7 +583,7 @@ async def awardcontrib(context:cmd.Context, award_value:int,user:discord.User):
             update_scores_by_id(session,the_guy.id)
             total = get_total_points_by_id(session,the_guy.id)
             session.commit()
-            await context.reply(usermention + " now has "+ strcommas(the_guys_contrib_points) +' contribution points\n-# (keep in mind, "contribution points" are just a middle calculation step and NOT the same as contribution score !)')
+            await context.reply(usermention + " now has "+ strcommas(the_guys_contrib_points) +' contribution points\n-# (keep in mind, "contribution points" are just a middle calculation step and NOT the same as contribution score !)',silent=True)
             await checkforpromotion(user,total)
     else:
         await context.reply("fuck off, you're not admin, you're not elligible to use this command")
@@ -603,7 +603,7 @@ async def awardbias(context:cmd.Context, award_value:int,user:discord.User):
             update_scores_by_id(session,the_guy.id)
             total = get_total_points_by_id(session,the_guy.id)
             session.commit()
-        await context.reply("Through the power of admin abuse <:trollface:1260219910928203879> " + usermention + " now has "+ strcommas(the_guys_bias_points) +" bias score")
+        await context.reply("Through the power of admin abuse <:trollface:1260219910928203879> " + usermention + " now has "+ strcommas(the_guys_bias_points) +" bias score",silent=True)
         await checkforpromotion(user,total)
     else:
         await context.reply("fuck off, low rank, no admin abuse for you <:trollface:1260219910928203879>")
@@ -618,7 +618,7 @@ async def forcedatejoined(context:cmd.Context,date_yyyymmdd:str,user:discord.Use
                 the_user.date_joined=dt_object
                 usermention = "<@"+str(the_user.id)+">"
                 session.commit()
-            await context.reply(usermention+"'s date joined has been manually set to "+str_time_yyyymmdd(dt_object)+" (YYYY/MM/DD format).")
+            await context.reply(usermention+"'s date joined has been manually set to "+str_time_yyyymmdd(dt_object)+" (YYYY/MM/DD format).",silent=True)
         else:
             await context.reply("You must input the date in a YYYY/MM/DD format !")
     else:
