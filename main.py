@@ -188,63 +188,28 @@ def update_NotifTrack_for_Nekotopia(session:Session,the_user:discord.Member):
         session.get(NotifTrack,(the_user.id,KITTENROLE)).status=True
 
 def notiftrackexistsbyid(session:Session,userid:int):
-    return ( ((session.get(NotifTrack,(userid,ANCIENTCATROLE)))!=None) and ((session.get(NotifTrack,(userid,YAPPERCATROLE)))!=None) and ((session.get(NotifTrack,(userid,BONGOCATROLE)))!=None) and ((session.get(NotifTrack,(userid,TECHNOCATROLE)))!=None) and ((session.get(NotifTrack,(userid,LOLCATROLE)))!=None) and ((session.get(NotifTrack,(userid,KITTENROLE)))!=None))
+    return ( 
+        ((session.get(NotifTrack,(userid,ANCIENTCATROLE)))!=None) 
+        and ((session.get(NotifTrack,(userid,YAPPERCATROLE)))!=None) 
+        and ((session.get(NotifTrack,(userid,BONGOCATROLE)))!=None) 
+        and ((session.get(NotifTrack,(userid,TECHNOCATROLE)))!=None) 
+        and ((session.get(NotifTrack,(userid,LOLCATROLE)))!=None) 
+        and ((session.get(NotifTrack,(userid,KITTENROLE)))!=None)
+    )
     
 
 def strcommas(number):
-    number_str = str(number)
-    if number < 0:
-        sign = "-"
-        number_str = number_str[1:]
-    else:
-        sign = ""
-
-    n = len(number_str)
-    if n <= 3:
-        return sign + number_str
-    else:
-        parts = []
-        for i in range(n - 1, -1, -3):
-            parts.append(number_str[max(0, i - 2):i + 1])
-        return sign + ','.join(reversed(parts))
+    return f"{number:,}"
 
 def str_time_yyyymmdd(thedate:datetime):
-    optionalzero:str = ""
-    optionalzerotwo:str = ""
-    if (int(thedate.month)<10):
-        optionalzero="0"
-    if (int(thedate.day)<10):
-        optionalzerotwo="0"
-    return (str(thedate.year) + "/" + optionalzero + str(thedate.month) + "/" + optionalzerotwo + str(thedate.day))
+    return f"{thedate:%Y/%m/%d}"
 
 def is_yyyymmdd(date_string: str) -> bool:
-    if len(date_string) != 10:
+    try:
+        datetime.strptime(date_string, "%Y/%m/%d")
+        return True
+    except:
         return False
-  
-    if date_string[4] != '/' or date_string[7] != '/':
-        return False
-    
-    if (date_string[0].isdigit() == False):
-        return False
-    if (date_string[1].isdigit() == False):
-        return False
-    if (date_string[2].isdigit() == False):
-        return False
-    if (date_string[3].isdigit() == False):
-        return False
-    if (date_string[5].isdigit() == False):
-        return False
-    if (date_string[6].isdigit() == False):
-        return False
-    if (date_string[8].isdigit() == False):
-        return False
-    if (date_string[9].isdigit() == False):
-        return False
-    
-    if(int(date_string[5])>1):
-        return False
-
-    return True
 
 def user_exists_by_id(session:Session,id: int) -> bool:
     existing_user = session.get(User, id)
@@ -256,7 +221,7 @@ def append_message_points_by_id_and_lengthaward(session:Session,id: int, lengtha
     user_to_update.message_points = user_to_update.message_points+lengthaward
     
 
-def update_scores_by_id(session,id):
+def update_scores_by_id(session:Session,id:int):
     user_to_update = session.get(User,id)
     seniority = (date.today() - user_to_update.date_joined.date()).days
     x:int=seniority+1
@@ -334,36 +299,35 @@ def isGrumpyCat(user:discord.Member):
 def isModOrHigher(user:discord.Member):
     return (has_role_byid(user,MATROLE) or has_role_byid(user,ARISTOCATROLE) or has_role_byid(user,NYANCATROLE) or has_role_byid(user,KEYBOARDCATROLE))
 
-async def checkforpromotion(the_guy:discord.Member,total:int):
+async def checkforpromotion(user:discord.Member,total:int):
     with Session(engine) as session:
-        if(notiftrackexistsbyid(session,the_guy.id)==False):
-            update_NotifTrack_for_Nekotopia(session,the_guy)
+        if(notiftrackexistsbyid(session,user.id)==False):
+            update_NotifTrack_for_Nekotopia(session,user)
         channeltoping=bot.get_channel(PROMOTIONSMICHAELCHANNEL)
-        usermention:str = "<@"+ str(the_guy.id) +">"
         pingmodsandadmins="<@&1373274471288541194>"
-        if ((has_role_byid(the_guy,ANCIENTCATROLE))==False)and(total>=332000)and((session.get(NotifTrack,(the_guy.id,ANCIENTCATROLE)).status==False)):
-            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&1348061216148291624>\nIf you agree, don't forget to promote them IN GAME first!",silent=True )
-            session.get(NotifTrack,(the_guy.id,ANCIENTCATROLE)).status=True
+        if ((has_role_byid(user,ANCIENTCATROLE))==False)and(total>=332000)and((session.get(NotifTrack,(user.id,ANCIENTCATROLE)).status==False)):
+            await channeltoping.send(f"{pingmodsandadmins} I think {user.mention} deserves a promotion to <@&1348061216148291624>\nIf you agree, don't forget to promote them IN GAME first!",silent=True )
+            session.get(NotifTrack,(user.id,ANCIENTCATROLE)).status=True
 
-        elif ((has_role_byid(the_guy,YAPPERCATROLE))==False)and(total>=50000)and((session.get(NotifTrack,(the_guy.id,YAPPERCATROLE)).status==False)):
-            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&1336818058328801312>\nIf you agree, don't forget to promote them IN GAME first!",silent=True )
-            session.get(NotifTrack,(the_guy.id,YAPPERCATROLE)).status=True
+        elif ((has_role_byid(user,YAPPERCATROLE))==False)and(total>=50000)and((session.get(NotifTrack,(user.id,YAPPERCATROLE)).status==False)):
+            await channeltoping.send(f"{pingmodsandadmins} I think {user.mention} deserves a promotion to <@&1336818058328801312>\nIf you agree, don't forget to promote them IN GAME first!",silent=True )
+            session.get(NotifTrack,(user.id,YAPPERCATROLE)).status=True
 
-        elif ((has_role_byid(the_guy,BONGOCATROLE))==False)and(total>=11000)and((session.get(NotifTrack,(the_guy.id,BONGOCATROLE)).status==False)):
-            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515782705577985>\nIf you agree, don't forget to promote them IN GAME first!",silent=True )
-            session.get(NotifTrack,(the_guy.id,BONGOCATROLE)).status=True
+        elif ((has_role_byid(user,BONGOCATROLE))==False)and(total>=11000)and((session.get(NotifTrack,(user.id,BONGOCATROLE)).status==False)):
+            await channeltoping.send(f"{pingmodsandadmins} I think {user.mention} deserves a promotion to <@&455515782705577985>\nIf you agree, don't forget to promote them IN GAME first!",silent=True )
+            session.get(NotifTrack,(user.id,BONGOCATROLE)).status=True
 
-        elif ((has_role_byid(the_guy,TECHNOCATROLE))==False)and(total>=2050)and((session.get(NotifTrack,(the_guy.id,TECHNOCATROLE)).status==False)):
-            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515726019821588>\nIf you agree, don't forget to promote them IN GAME first!",silent=True )
-            session.get(NotifTrack,(the_guy.id,TECHNOCATROLE)).status=True
+        elif ((has_role_byid(user,TECHNOCATROLE))==False)and(total>=2050)and((session.get(NotifTrack,(user.id,TECHNOCATROLE)).status==False)):
+            await channeltoping.send(f"{pingmodsandadmins} I think {user.mention} deserves a promotion to <@&455515726019821588>\nIf you agree, don't forget to promote them IN GAME first!",silent=True )
+            session.get(NotifTrack,(user.id,TECHNOCATROLE)).status=True
 
-        elif ((has_role_byid(the_guy,LOLCATROLE))==False)and(total>=170)and((session.get(NotifTrack,(the_guy.id,LOLCATROLE)).status==False)):
-            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" deserves a promotion to <@&455515673859194892>\nIf you agree, don't forget to promote them IN GAME first!",silent=True )
-            session.get(NotifTrack,(the_guy.id,LOLCATROLE)).status=True
+        elif ((has_role_byid(user,LOLCATROLE))==False)and(total>=170)and((session.get(NotifTrack,(user.id,LOLCATROLE)).status==False)):
+            await channeltoping.send(f"{pingmodsandadmins} I think {user.mention} deserves a promotion to <@&455515673859194892>\nIf you agree, don't forget to promote them IN GAME first!",silent=True )
+            session.get(NotifTrack,(user.id,LOLCATROLE)).status=True
 
-        elif (has_role_byid(the_guy,GRUMPYCATROLE))and(total>=0)and((session.get(NotifTrack,(the_guy.id,KITTENROLE)).status==False)):
-            await channeltoping.send(pingmodsandadmins+" I think "+usermention+" climbed from the depths and deserves to be <@&455515632742694929> again.\nIf you agree, dfdon't forget to promote them IN GAME first!",silent=True )
-            session.get(NotifTrack,(the_guy.id,KITTENROLE)).status=True
+        elif (has_role_byid(user,GRUMPYCATROLE))and(total>=0)and((session.get(NotifTrack,(user.id,KITTENROLE)).status==False)):
+            await channeltoping.send(f"{pingmodsandadmins} I think {user.mention} climbed from the depths and deserves to be <@&455515632742694929> again.\nIf you agree, dfdon't forget to promote them IN GAME first!",silent=True )
+            session.get(NotifTrack,(user.id,KITTENROLE)).status=True
             
         session.commit()
 
@@ -453,7 +417,7 @@ async def promotion_checks(message:discord.Message):
 #     user.
     
 @bot.hybrid_command(with_app_command=True)
-async def resetnotiftrack(context:cmd.Context,user:typing.Optional[discord.User]=None):
+async def resetnotiftrack(context:cmd.Context,user:typing.Optional[discord.Member]=None):
     if user is None :
         user = context.author
     ##print(user.id)
@@ -462,50 +426,57 @@ async def resetnotiftrack(context:cmd.Context,user:typing.Optional[discord.User]
         initialize_NotifTrack_for_Nekotopia_byid(session,user.id)
         update_NotifTrack_for_Nekotopia(session,user)
         session.commit()
-    await context.reply("The notification tracker for promotions of <@" + str(user.id) +"> has been reset.",silent=True)
+    await context.reply(f"The notification tracker for promotions of {user.mention} has been reset.",silent=True,ephemeral=True)
     
 
 @bot.hybrid_command(with_app_command=True)
-async def showscore(context:cmd.Context,user:typing.Optional[discord.User]=None):
+async def showscore(context:cmd.Context,user:typing.Optional[discord.Member]=None,public:str="nah"):
+    isephemeral:bool=True
+    if(public in ["Yes","yes","True","true","public","Public","Y","y","ok","OK"]):
+        isephemeral=False
+    
     if user is None :
         user = context.author
     ##print(user.id)
     with Session(engine) as session:
-        the_user = session.get(User,user.id)
-        if the_user == None :
+        db_user = session.get(User,user.id)
+        if db_user == None:
             new_user = User(id=user.id, date_joined = user.joined_at, message_points=1)
             session.add(new_user)
-            the_user = session.get(User,user.id)
-        update_scores_by_id(session,the_user.id)
-        usermention:str = "<@"+ str(user.id) +">"
-        useractivscore = the_user.activity_score
-        usercontribscore = the_user.contribution_score
-        userbias = the_user.bias_points
-        todisplay = "> " + usermention + "'s score breakdown :" + "\n> activity score = " + strcommas(useractivscore)
-        if(usercontribscore!=0):
-            todisplay=todisplay+ "\n> contribution score = " + strcommas(usercontribscore)
-        if(userbias!=0):
-            todisplay=todisplay+ "\n> bias <:trollface:1260219910928203879> score = " +strcommas(userbias)
+            db_user = session.get(User,user.id)
+        update_scores_by_id(session,db_user.id)
+        useractivscore = db_user.activity_score
+        usercontribscore = db_user.contribution_score
+        userbias = db_user.bias_points
         usertotal = useractivscore+usercontribscore+userbias
-        todisplay= todisplay + "\n> ## TOTAL SCORE = " + strcommas(usertotal)
+        todisplay = f"> {user.mention}'s score breakdown :" f"\n> activity score = {useractivscore:,}"
+        if(usercontribscore!=0):
+            todisplay += f"\n> contribution score = {usercontribscore:,}"
+        if(userbias!=0):
+            todisplay += f"\n> bias <:trollface:1260219910928203879> score = {userbias:,}"
+        todisplay += f"\n> ## TOTAL SCORE = {usertotal:,}"
         session.commit()
-    await context.reply(todisplay,silent=True)
+    await context.reply(todisplay,silent=True,ephemeral=isephemeral)
 
 @bot.hybrid_command(with_app_command=True)
-async def showscorev(context:cmd.Context,user:typing.Optional[discord.User]=None):
+async def showscorev(context:cmd.Context,user:typing.Optional[discord.Member]=None,public:str="nah"):
+    isephemeral:bool=True
+    if(public in ["Yes","yes","True","true","public","Public","Y","y","ok","OK"]):
+        isephemeral=False
+    
     ##if(context.author.guild_permissions.administrator):
     if (isModOrHigher(context.author)):
         if user is None :
             user = context.author
         ##print(user.id)
         with Session(engine) as session:
-            the_user = session.get(User,user.id)
-            if the_user == None :
+            db_user = session.get(User,user.id)
+            if db_user == None :
                 new_user = User(id=user.id, date_joined = user.joined_at, message_points=1)
                 session.add(new_user)
-                the_user = session.get(User,user.id)
-            update_scores_by_id(session,the_user.id)
-            seniority = (date.today() - the_user.date_joined.date()).days
+                db_user = session.get(User,user.id)
+            update_scores_by_id(session,db_user.id)
+            seniority = (date.today() - db_user.date_joined.date()).days
             x:int=seniority+1
             y:float
 
@@ -513,39 +484,36 @@ async def showscorev(context:cmd.Context,user:typing.Optional[discord.User]=None
             y=0.812154+0.488915*math.log(x) ##THE CONTROVERSIAL FORMULA
             ##THE CONTROVERSIAL FORMULA
 
-            usermention:str = "<@"+ str(user.id) +">"
-            usermsgpts = the_user.message_points
-            uservoicepts = the_user.voice_points
-            userpartipts = the_user.participation_points
-            usercontribpts = the_user.contribution_points
-            usernotes = the_user.contribution_notes
-            datetodisplay:str = str_time_yyyymmdd(the_user.date_joined)
+            usernotes = db_user.contribution_notes
             seniority_multiplier:float = y
-            useractivscore = the_user.activity_score
-            usercontribscore = the_user.contribution_score
-            userbias = the_user.bias_points         
+            useractivscore = db_user.activity_score
+            usercontribscore = db_user.contribution_score
+            userbias = db_user.bias_points         
             usertotal = useractivscore+usercontribscore+userbias
-            todisplay:str = ("> " + usermention + "'s verbose score breakdown :"
-            +"\n> ## POINTS :"
-            +"\n> message points = "+ strcommas(usermsgpts)
-            +"\n> voice points = "+ strcommas(uservoicepts)
-            +"\n> participation points = " + strcommas(userpartipts)
-            +"\n> contribution points = " + strcommas(usercontribpts))
+            todisplay:str = (
+                f"> {user.mention}'s verbose score breakdown :"
+                "\n> ## POINTS :"
+                f"\n> message points = {db_user.message_points:,}"
+                f"\n> voice points = {db_user.voice_points:,}"
+                f"\n> participation points = {db_user.participation_points:,}"
+                f"\n> contribution points = {db_user.contribution_points:,}")
 
             if(usernotes!=""):   
-                todisplay=todisplay+("\n> list of contributions :" + usernotes)
+                todisplay += f"\n> list of contributions :{usernotes}"
             
-            todisplay=(todisplay+"\n> date joined (YYYY/MM/DD) = " + datetodisplay
-            +"\n> seniority_multiplier = x" + str(math.ceil(seniority_multiplier*1000)/1000)
-            +"\n> ## SCORE :"
-            +"\n> activity score = " + strcommas(useractivscore)
-            +"\n> contribution score = " + strcommas(usercontribscore)
-            +"\n> bias <:trollface:1260219910928203879> score = " + strcommas(userbias)
-            +"\n> ## TOTAL SCORE = " + strcommas(usertotal))
+            todisplay+= (
+                f"\n> date joined (YYYY/MM/DD) = {db_user.date_joined:%Y/%m/%d}"
+                f"\n> seniority_multiplier = x{seniority_multiplier:.3}"
+                f"\n> ## SCORE :"
+                f"\n> activity score = {useractivscore:,}"
+                f"\n> contribution score = {usercontribscore:,}"
+                f"\n> bias <:trollface:1260219910928203879> score = {userbias:,}"
+                f"\n> ## TOTAL SCORE = {usertotal:,}"
+            )
             session.commit()
-        await context.reply(todisplay,silent=True)
+        await context.reply(todisplay,silent=True,ephemeral=isephemeral)
     else:
-        await context.reply("fuck off, low rank")
+        await context.reply("fuck off, low rank",ephemeral=isephemeral)
 
 @bot.hybrid_command(with_app_command=True)
 async def help(context:cmd.context):
@@ -562,153 +530,166 @@ async def help(context:cmd.context):
                         "\n## awardparticipation \n> allows admins to award someone with participation points\n> (to reward someone for participating in content with other members)"
                         "\n## awardbias\n> allows admins to award bias score to users for no reason through the power of admin abuse <:trollface:1260219910928203879>"
                         "\n## resetnotiftrack\n> debug tool that resets the tracker for promotion notifications for a specific user"
-                        "\n\n The Bot is still in early developpement/prototype form, many more features and commands coming soon !")
+                        "\n\n The Bot is still in early developpement/prototype form, many more features and commands coming soon !",ephemeral=True)
 
 @bot.hybrid_command(with_app_command=True)
-async def forcemsgpts(context:cmd.Context,user:discord.User, msg_value:int):
+async def forcemsgpts(context:cmd.Context,user:discord.Member, msg_value:int):
     if(context.author.guild_permissions.administrator):
-        usermention:str = "<@"+ str(user.id) +">"
-        the_guys_message_points:int
+        new_message_points:int
         with Session(engine) as session:
             
-            the_guy = session.get(User,user.id)
-            the_guy.message_points= msg_value            
-            the_guys_message_points= the_guy.message_points ##to display later outside of the session
-            update_scores_by_id(session,the_guy.id)
-            total = get_total_points_by_id(session,the_guy.id)
+            db_user = session.get(User,user.id)
+            db_user.message_points= msg_value            
+            new_message_points= db_user.message_points ##to display later outside of the session
+            update_scores_by_id(session,db_user.id)
+            total = get_total_points_by_id(session,db_user.id)
             session.commit()
-            await context.reply(usermention + "'s message points have been repaired, they now have "+ strcommas(the_guys_message_points) +'\n-# (keep in mind, "message points" are just a middle calculation step and NOT the same as activity score !)',silent=True)
+            await context.reply(f"{user.mention}'s message points have been repaired, they now have {new_message_points:,}"
+                                '\n-# (keep in mind, "message points" are just a middle calculation step and NOT the same as activity score !)',silent=True,ephemeral=True)
             await checkforpromotion(user,total)
     else:
-        await context.reply("fuck off, you're not admin, you're not elligible to use this command")
+        await context.reply("fuck off, you're not admin, you're not elligible to use this command",ephemeral=True)
 
 @bot.hybrid_command(with_app_command=True)
-async def awardmsg(context:cmd.Context,user:discord.User, award_value:int):
+async def awardmsg(context:cmd.Context,user:discord.Member, award_value:int):
     if(context.author.guild_permissions.administrator):
-        usermention:str = "<@"+ str(user.id) +">"
-        the_guys_message_points:int
+        new_message_points:int
         with Session(engine) as session:
             
-            the_guy = session.get(User,user.id)
-            the_guy.message_points= the_guy.message_points + award_value     
-            the_guys_message_points= the_guy.message_points ##to display later outside of the session
-            update_scores_by_id(session,the_guy.id)
-            total = get_total_points_by_id(session,the_guy.id)
+            db_user = session.get(User,user.id)
+            db_user.message_points= db_user.message_points + award_value     
+            new_message_points= db_user.message_points ##to display later outside of the session
+            update_scores_by_id(session,db_user.id)
+            total = get_total_points_by_id(session,db_user.id)
             session.commit()
-            await context.reply(usermention + " have been granted " + strcommas(award_value) + " message points and now has "+ strcommas(the_guys_message_points) +'\n-# (keep in mind, "message points" are just a middle calculation step and NOT the same as activity score !)',silent=True)
+            await context.reply(f"{user.mention} have been granted {award_value:,} message points and now has {new_message_points:,}"
+                                '\n-# (keep in mind, "message points" are just a middle calculation step and NOT the same as activity score !)',silent=True,ephemeral=True)
             await checkforpromotion(user,total)
     else:
-        await context.reply("fuck off, you're not admin, you're not elligible to use this command")
+        await context.reply("fuck off, you're not admin, you're not elligible to use this command",ephemeral=True)
 
 @bot.hybrid_command(with_app_command=True)
-async def awardvoice(context:cmd.Context, user:discord.User, award_value:int):
+async def awardvoice(context:cmd.Context, user:discord.Member, award_value:int,public:str="nah"):
+    isephemeral:bool=True
+    if(public in ["Yes","yes","True","true","public","Public","Y","y","ok","OK"]):
+        isephemeral=False
+    
     if(context.author.guild_permissions.administrator):
-        usermention:str = "<@"+ str(user.id) +">"
-        the_guys_voice_points:int
+        new_voice_points:int
         with Session(engine) as session:
             
-            the_guy = session.get(User,user.id)
-            the_guy.voice_points= the_guy.voice_points + award_value     
-            the_guys_voice_points= the_guy.voice_points ##to display later outside of the session
-            update_scores_by_id(session,the_guy.id)
-            total = get_total_points_by_id(session,the_guy.id)
+            db_user = session.get(User,user.id)
+            db_user.voice_points= db_user.voice_points + award_value     
+            new_voice_points= db_user.voice_points ##to display later outside of the session
+            update_scores_by_id(session,db_user.id)
+            total = get_total_points_by_id(session,db_user.id)
             session.commit()
-            await context.reply(usermention + " have been granted " + strcommas(award_value) + " voice points and now has "+ strcommas(the_guys_voice_points) +'\n-# (keep in mind, "voice points" are just a middle calculation step and NOT the same as activity score !)',silent=True)
+            await context.reply(f"{user.mention} have been granted {award_value:,} voice points and now has {new_voice_points:,}"
+                                '\n-# (keep in mind, "voice points" are just a middle calculation step and NOT the same as activity score !)',silent=True,ephemeral=isephemeral)
             await checkforpromotion(user,total)
     else:
-        await context.reply("fuck off, you're not admin, you're not elligible to use this command")
+        await context.reply("fuck off, you're not admin, you're not elligible to use this command",ephemeral=isephemeral)
 
 @bot.hybrid_command(with_app_command=True)
-async def awardparticipation(context:cmd.Context, user:discord.User, award_value:int):
+async def awardparticipation(context:cmd.Context, user:discord.Member, award_value:int,public:str="nah"):
+    isephemeral:bool=True
+    if(public in ["Yes","yes","True","true","public","Public","Y","y","ok","OK"]):
+        isephemeral=False
+    
     if(context.author.guild_permissions.administrator):
-        usermention:str = "<@"+ str(user.id) +">"
-        the_guys_participation_points:int
+        new_participation_points:int
         with Session(engine) as session:
             
-            the_guy = session.get(User,user.id)
-            the_guy.participation_points= the_guy.participation_points + award_value     
-            the_guys_participation_points= the_guy.participation_points ##to display later outside of the session
-            update_scores_by_id(session,the_guy.id)
-            total = get_total_points_by_id(session,the_guy.id)
+            db_user = session.get(User,user.id)
+            db_user.participation_points= db_user.participation_points + award_value     
+            new_participation_points= db_user.participation_points ##to display later outside of the session
+            update_scores_by_id(session,db_user.id)
+            total = get_total_points_by_id(session,db_user.id)
             session.commit()
-            await context.reply(usermention + " have been granted " + strcommas(award_value) + " participation points and now has "+ strcommas(the_guys_participation_points) +'\n-# (keep in mind, "voice points" are just a middle calculation step and NOT the same as activity score !)',silent=True)
+            await context.reply(f"{user.mention} have been granted {award_value:,} participation points and now has {new_participation_points:,}"
+                                '\n-# (keep in mind, "voice points" are just a middle calculation step and NOT the same as activity score !)',silent=True,ephemeral=isephemeral)
             await checkforpromotion(user,total)
     else:
-        await context.reply("fuck off, you're not admin, you're not elligible to use this command")
+        await context.reply("fuck off, you're not admin, you're not elligible to use this command",ephemeral=isephemeral)
 
 @bot.hybrid_command(with_app_command=True)
 #async def awardcontrib(context:cmd.Context, award_value:int,user:discord.User):
-async def awardcontrib(context:cmd.Context, user:discord.User, award_value:int,note:str=None):
+async def awardcontrib(context:cmd.Context, user:discord.Member, award_value:int,note:str=None,public:str="nah"):
+    isephemeral:bool=True
+    if(public in ["Yes","yes","True","true","public","Public","Y","y","ok","OK"]):
+        isephemeral=False
+    
     if(context.author.guild_permissions.administrator):
-        usermention:str = "<@"+ str(user.id) +">"
-        the_guys_contrib_points:int
+        new_contrib_points:int
         with Session(engine) as session:
             
-            the_guy = session.get(User,user.id)
-            the_guy.contribution_points = the_guy.contribution_points + award_value
+            db_user = session.get(User,user.id)
+            db_user.contribution_points = db_user.contribution_points + award_value
             if(note!=None):
-                # if(the_guy.contribution_notes!=""):
-                the_guy.contribution_notes=the_guy.contribution_notes+ "\n> "+ strcommas(award_value) + " for : " + note
+                # if(db_user.contribution_notes!=""):
+                db_user.contribution_notes += f"\n> {award_value:,} for : {note}"
                 # else:
-                #     the_guy.contribution_notes= "\n> "+ strcommas(award_value) + " for : " + note
-            the_guys_contrib_points= the_guy.contribution_points ##to display later outside of the session
-            update_scores_by_id(session,the_guy.id)
-            total = get_total_points_by_id(session,the_guy.id)
+                #     db_user.contribution_notes= "\n> "+ strcommas(award_value) + " for : " + note
+            new_contrib_points = db_user.contribution_points ##to display later outside of the session
+            update_scores_by_id(session,db_user.id)
+            total = get_total_points_by_id(session,db_user.id)
             session.commit()
-            todisplay = usermention + " have been granted "+ strcommas(award_value) +" contribution points and now has "+ strcommas(the_guys_contrib_points)
+            todisplay = f"{user.mention} have been granted {award_value:,} contribution points and now has {new_contrib_points:,}"
             if(note !=None):
-                todisplay=todisplay+"\nas a reward for : "+note
-            todisplay=todisplay+'\n-# (keep in mind, "contribution points" are just a middle calculation step and NOT the same as contribution score !)'
-            await context.reply(todisplay,silent=True)
+                todisplay += f"\nas a reward for : {note}"
+            todisplay += '\n-# (keep in mind, "contribution points" are just a middle calculation step and NOT the same as contribution score !)'
+            await context.reply(todisplay,silent=True,ephemeral=isephemeral)
             await checkforpromotion(user,total)
     else:
-        await context.reply("fuck off, you're not admin, you're not elligible to use this command")
+        await context.reply("fuck off, you're not admin, you're not elligible to use this command",ephemeral=isephemeral)
 
 @bot.hybrid_command(with_app_command=True)
-async def nukecontribnotes(context:cmd.Context, user:discord.User):
+async def nukecontribnotes(context:cmd.Context, user:discord.Member):
     if(context.author.guild_permissions.administrator):
         with Session(engine) as session:
-            the_guy = session.get(User,user.id)
-            the_guy.contribution_notes=""
+            db_user = session.get(User,user.id)
+            db_user.contribution_notes=""
             session.commit()
-        await context.reply("successfully nuked the contribution notes of <@"+str(context.author.id)+">",silent=True)
+        await context.reply(f"successfully nuked the contribution notes of {user.mention}>",silent=True,ephemeral=True)
     else:
-        await context.reply("fuck off, you're not admin, you're not elligible to use this command")
+        await context.reply("fuck off, you're not admin, you're not elligible to use this command",ephemeral=True)
 
 
 @bot.hybrid_command(with_app_command=True)
-async def awardbias(context:cmd.Context,user:discord.User, award_value:int):
+async def awardbias(context:cmd.Context,user:discord.Member, award_value:int,hidden:str="nah"):
+    isephemeral:bool=False
+    if(hidden in ["Yes","yes","True","true","Hidden","hidden","Y","y","ok","OK"]):
+        isephemeral=True
+    
     if(context.author.guild_permissions.administrator):
-        usermention:str = "<@"+ str(user.id) +">"
-        the_guys_bias_points:int
+        new_bias_points:int
         with Session(engine) as session:
             
-            the_guy = session.get(User,user.id)
-            the_guy.bias_points = the_guy.bias_points + award_value            
-            the_guys_bias_points= the_guy.bias_points ##to display later outside of the session
-            update_scores_by_id(session,the_guy.id)
-            total = get_total_points_by_id(session,the_guy.id)
+            db_user = session.get(User,user.id)
+            db_user.bias_points = db_user.bias_points + award_value            
+            new_bias_points = db_user.bias_points ##to display later outside of the session
+            update_scores_by_id(session,db_user.id)
+            total = get_total_points_by_id(session,db_user.id)
             session.commit()
-        await context.reply("Through the power of admin abuse <:trollface:1260219910928203879> " + usermention + " have been granted "+strcommas(award_value)+" bias score and now has "+ strcommas(the_guys_bias_points),silent=True)
+        await context.reply(f"Through the power of admin abuse <:trollface:1260219910928203879> {user.mention} have been granted {award_value:,} bias score and now has {new_bias_points:,}",silent=True,ephemeral=isephemeral)
         await checkforpromotion(user,total)
     else:
-        await context.reply("fuck off, low rank, no admin abuse for you <:trollface:1260219910928203879>")
+        await context.reply("fuck off, low rank, no admin abuse for you <:trollface:1260219910928203879>",ephemeral=isephemeral)
 
 @bot.hybrid_command(with_app_command=True)
-async def forcedatejoined(context:cmd.Context, user:discord.User, date_yyyymmdd:str):
+async def forcedatejoined(context:cmd.Context, user:discord.Member, date_yyyymmdd:str):
     if(context.author.guild_permissions.administrator):
         if (is_yyyymmdd(date_yyyymmdd)):
             with Session(engine) as session:
-                the_user=session.get(User,user.id)
+                db_user =session.get(User,user.id)
                 dt_object = datetime.strptime(date_yyyymmdd, "%Y/%m/%d")
-                the_user.date_joined=dt_object
-                usermention = "<@"+str(the_user.id)+">"
+                db_user.date_joined=dt_object
                 session.commit()
-            await context.reply(usermention+"'s date joined has been repaired and set to "+str_time_yyyymmdd(dt_object)+" (YYYY/MM/DD format).",silent=True)
+            await context.reply(f"{user.mention}'s date joined has been repaired and set to {dt_object:%Y/%m/%d} (YYYY/MM/DD format).",silent=True,ephemeral=True)
         else:
-            await context.reply("You must input the date in a YYYY/MM/DD format !")
+            await context.reply("You must input the date in a YYYY/MM/DD format !",ephemeral=True)
     else:
-        await context.reply("fuck off, you're not admin, you're not elligible to use this command")
+        await context.reply("fuck off, you're not admin, you're not elligible to use this command",ephemeral=True)
 
 
         
