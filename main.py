@@ -661,10 +661,10 @@ async def nukecontribnotes(context:cmd.Context, user:discord.Member):
 
 
 @bot.hybrid_command(with_app_command=True)
-async def awardbias(context:cmd.Context,user:discord.Member, award_value:int,public:str="nah"):
-    isephemeral:bool=True
-    if(public in ["Yes","yes","True","true","public","Public","Y","y","ok","OK"]):
-        isephemeral=False
+async def awardbias(context:cmd.Context,user:discord.Member, award_value:int,hidden:str="nah"):
+    isephemeral:bool=False
+    if(hidden in ["Yes","yes","True","true","Hidden","hidden","Y","y","ok","OK"]):
+        isephemeral=True
     if(context.author.guild_permissions.administrator):
         new_bias_points:int
         with Session(engine) as session:
