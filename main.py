@@ -99,17 +99,17 @@ class User(Base):
     def getbyid(cls,session,id) -> 'User':
         return session.get(cls,id)
     
-class ScanTrack(Base):
-    __tablename__ = 'scantrack'
-    guild:Mapped[int] = mapped_column(primary_key=True) 
-    currently_scanning:Mapped[bool] = mapped_column(default=False)
-    channel_scanning:Mapped[int] = mapped_column(default=0)
+# class ScanTrack(Base):
+#     __tablename__ = 'scantrack'
+#     guild:Mapped[int] = mapped_column(primary_key=True) 
+#     currently_scanning:Mapped[bool] = mapped_column(default=False)
+#     channel_scanning:Mapped[int] = mapped_column(default=0)
     
 
 
-    @classmethod
-    def getbyid(cls,session,id) -> 'ScanTrack':
-        return session.get(cls,id)
+#     @classmethod
+#     def getbyid(cls,session,id) -> 'ScanTrack':
+#         return session.get(cls,id)
 
 class NotifTrack(Base):
     __tablename__ = 'notiftrack'
@@ -332,9 +332,6 @@ async def checkforpromotion(user:discord.Member,total:int):
             update_NotifTrack_for_Nekotopia(session,user)
         channeltoping=bot.get_channel(PROMOTIONSMICHAELCHANNEL)
         pingmodsandadmins="<@&1373274471288541194>"
-        if ((has_role_byid(user,ANCIENTCATROLE))==False)and(total>=332000)and((session.get(NotifTrack,(user.id,ANCIENTCATROLE)).status==False)):
-            await channeltoping.send(f"{pingmodsandadmins} I think {user.mention} deserves a promotion to <@&1348061216148291624>\nIf you agree, don't forget to promote them IN GAME first!",silent=True )
-            session.get(NotifTrack,(user.id,ANCIENTCATROLE)).status=True
         if ((has_role_byid(user,ANCIENTCATROLE))==False)and(total>=332000)and((session.get(NotifTrack,(user.id,ANCIENTCATROLE)).status==False)):
             await channeltoping.send(f"{pingmodsandadmins} I think {user.mention} deserves a promotion to <@&1348061216148291624>\nIf you agree, don't forget to promote them IN GAME first!",silent=True )
             session.get(NotifTrack,(user.id,ANCIENTCATROLE)).status=True
