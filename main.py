@@ -487,54 +487,54 @@ async def showscore(context:cmd.Context,user:typing.Optional[discord.Member]=Non
     if(public in ["Yes","yes","True","true","public","Public","Y","y","ok","OK"]):
         isephemeral=False
     #if (isModOrHigher(context.author)):
-        if user is None :
-            user = context.author
-        ##print(user.id)
-        with Session(engine) as session:
+    if user is None :
+        user = context.author
+    ##print(user.id)
+    with Session(engine) as session:
+        db_user = session.get(User,user.id)
+        if db_user == None :
+            new_user = User(id=user.id, date_joined = user.joined_at, message_points=1)
+            session.add(new_user)
             db_user = session.get(User,user.id)
-            if db_user == None :
-                new_user = User(id=user.id, date_joined = user.joined_at, message_points=1)
-                session.add(new_user)
-                db_user = session.get(User,user.id)
-            update_scores_by_id(session,db_user.id)
-            seniority = (date.today() - db_user.date_joined.date()).days
-            x:int=seniority+1
-            y:float
+        update_scores_by_id(session,db_user.id)
+        seniority = (date.today() - db_user.date_joined.date()).days
+        x:int=seniority+1
+        y:float
 
-            ##THE CONTROVERSIAL FORMULA
-            y=0.812154+0.488915*math.log(x) ##THE CONTROVERSIAL FORMULA
-            ##THE CONTROVERSIAL FORMULA
+        ##THE CONTROVERSIAL FORMULA
+        y=0.812154+0.488915*math.log(x) ##THE CONTROVERSIAL FORMULA
+        ##THE CONTROVERSIAL FORMULA
 
-            usernotes = db_user.contribution_notes
-            seniority_multiplier:float = y
-            useractivscore = db_user.activity_score
-            usercontribscore = db_user.contribution_score
-            userbias = db_user.bias_points         
-            usertotal = useractivscore+usercontribscore+userbias
-            todisplay:str = (
-                f"> {user.mention}'s verbose score breakdown :"
-                "\n> ## POINTS :"
-                f"\n> message points = {db_user.message_points:,}"
-                f"\n> voice points = {db_user.voice_points:,}"
-                f"\n> participation points = {db_user.participation_points:,}"
-                f"\n> contribution points = {db_user.contribution_points:,}")
+        usernotes = db_user.contribution_notes
+        seniority_multiplier:float = y
+        useractivscore = db_user.activity_score
+        usercontribscore = db_user.contribution_score
+        userbias = db_user.bias_points         
+        usertotal = useractivscore+usercontribscore+userbias
+        todisplay:str = (
+            f"> {user.mention}'s verbose score breakdown :"
+            "\n> ## POINTS :"
+            f"\n> message points = {db_user.message_points:,}"
+            f"\n> voice points = {db_user.voice_points:,}"
+            f"\n> participation points = {db_user.participation_points:,}"
+            f"\n> contribution points = {db_user.contribution_points:,}")
 
-            if(usernotes!=""):   
-                todisplay += f"\n> list of contributions :{usernotes}"
-            
-            todisplay+= (
-                f"\n> date joined (YYYY/MM/DD) = {db_user.date_joined:%Y/%m/%d}"
-                f"\n> seniority_multiplier = x{seniority_multiplier:.3}"
-                f"\n> ## SCORE :"
-                f"\n> activity score = {useractivscore:,}"
-                f"\n> contribution score = {usercontribscore:,}"
-                f"\n> bias <:trollface:1260219910928203879> score = {userbias:,}"
-                f"\n> ## TOTAL SCORE = {usertotal:,}"
-            )
-            session.commit()
-        await context.reply(todisplay,silent=True,ephemeral=isephemeral)
-    else:
-        await context.reply("fuck off, low rank",ephemeral=isephemeral)
+        if(usernotes!=""):   
+            todisplay += f"\n> list of contributions :{usernotes}"
+        
+        todisplay+= (
+            f"\n> date joined (YYYY/MM/DD) = {db_user.date_joined:%Y/%m/%d}"
+            f"\n> seniority_multiplier = x{seniority_multiplier:.3}"
+            f"\n> ## SCORE :"
+            f"\n> activity score = {useractivscore:,}"
+            f"\n> contribution score = {usercontribscore:,}"
+            f"\n> bias <:trollface:1260219910928203879> score = {userbias:,}"
+            f"\n> ## TOTAL SCORE = {usertotal:,}"
+        )
+        session.commit()
+    await context.reply(todisplay,silent=True,ephemeral=isephemeral)
+    # else:
+    #     await context.reply("fuck off, low rank",ephemeral=isephemeral)
 
 @bot.hybrid_command(with_app_command=True)
 async def help(context:cmd.context):
