@@ -456,37 +456,37 @@ async def resetnotiftrack(context:cmd.Context,user:typing.Optional[discord.Membe
     await context.reply(f"The notification tracker for promotions of {user.mention} has been reset.",silent=True)
     
 
+# @bot.hybrid_command(with_app_command=True)
+# async def showscore(context:cmd.Context,user:typing.Optional[discord.Member]=None,public:str="nah"):
+#     isephemeral:bool=True
+#     if(public in ["Yes","yes","True","true","public","Public","Y","y","ok","OK"]):
+#         isephemeral=False
+#     with Session(engine) as session:
+#         db_user = session.get(User,user.id)
+#         if db_user == None:
+#             new_user = User(id=user.id, date_joined = user.joined_at, message_points=1)
+#             session.add(new_user)
+#             db_user = session.get(User,user.id)
+#         update_scores_by_id(session,db_user.id)
+#         useractivscore = db_user.activity_score
+#         usercontribscore = db_user.contribution_score
+#         userbias = db_user.bias_points
+#         usertotal = useractivscore+usercontribscore+userbias
+#         todisplay = f"> {user.mention}'s score breakdown :" f"\n> activity score = {useractivscore:,}"
+#         if(usercontribscore!=0):
+#             todisplay += f"\n> contribution score = {usercontribscore:,}"
+#         if(userbias!=0):
+#             todisplay += f"\n> bias <:trollface:1260219910928203879> score = {userbias:,}"
+#         todisplay += f"\n> ## TOTAL SCORE = {usertotal:,}"
+#         session.commit()
+#     await context.reply(todisplay,silent=True,ephemeral=isephemeral)
+
 @bot.hybrid_command(with_app_command=True)
 async def showscore(context:cmd.Context,user:typing.Optional[discord.Member]=None,public:str="nah"):
     isephemeral:bool=True
     if(public in ["Yes","yes","True","true","public","Public","Y","y","ok","OK"]):
         isephemeral=False
-    with Session(engine) as session:
-        db_user = session.get(User,user.id)
-        if db_user == None:
-            new_user = User(id=user.id, date_joined = user.joined_at, message_points=1)
-            session.add(new_user)
-            db_user = session.get(User,user.id)
-        update_scores_by_id(session,db_user.id)
-        useractivscore = db_user.activity_score
-        usercontribscore = db_user.contribution_score
-        userbias = db_user.bias_points
-        usertotal = useractivscore+usercontribscore+userbias
-        todisplay = f"> {user.mention}'s score breakdown :" f"\n> activity score = {useractivscore:,}"
-        if(usercontribscore!=0):
-            todisplay += f"\n> contribution score = {usercontribscore:,}"
-        if(userbias!=0):
-            todisplay += f"\n> bias <:trollface:1260219910928203879> score = {userbias:,}"
-        todisplay += f"\n> ## TOTAL SCORE = {usertotal:,}"
-        session.commit()
-    await context.reply(todisplay,silent=True,ephemeral=isephemeral)
-
-@bot.hybrid_command(with_app_command=True)
-async def showscorev(context:cmd.Context,user:typing.Optional[discord.Member]=None,public:str="nah"):
-    isephemeral:bool=True
-    if(public in ["Yes","yes","True","true","public","Public","Y","y","ok","OK"]):
-        isephemeral=False
-    if (isModOrHigher(context.author)):
+    #if (isModOrHigher(context.author)):
         if user is None :
             user = context.author
         ##print(user.id)
@@ -575,9 +575,10 @@ async def forcemsgpts(context:cmd.Context,user:discord.Member, msg_value:int):
 
 
 @bot.hybrid_command(with_app_command=True)
-async def awardvoice(context:cmd.Context, user:discord.Member, award_value:int, public:str="nah"):
-    isephemeral:bool=True
-    if(public in ["Yes","yes","True","true","public","Public","Y","y","ok","OK"]):
+async def awardvoice(context:cmd.Context, user:discord.Member, award_value:int, hidden:str="nah"):
+    isephemeral:bool=False
+    if(hidden in ["Yes","yes","True","true","Hidden","hidden","Y","y","ok","OK"]):
+        isephemeral=True
         isephemeral=False
     if(context.author.guild_permissions.administrator):
         new_voice_points:int
@@ -598,10 +599,10 @@ async def awardvoice(context:cmd.Context, user:discord.Member, award_value:int, 
         await context.reply("fuck off, you're not admin, you're not elligible to use this command",ephemeral=isephemeral)
 
 @bot.hybrid_command(with_app_command=True)
-async def awardparticipation(context:cmd.Context, user:discord.Member, award_value:int,public:str="nah"):
-    isephemeral:bool=True
-    if(public in ["Yes","yes","True","true","public","Public","Y","y","ok","OK"]):
-        isephemeral=False
+async def awardparticipation(context:cmd.Context, user:discord.Member, award_value:int,hidden:str="nah"):
+    isephemeral:bool=False
+    if(hidden in ["Yes","yes","True","true","Hidden","hidden","Y","y","ok","OK"]):
+        isephemeral=True
     if(context.author.guild_permissions.administrator):
         new_participation_points:int
         with Session(engine) as session:
@@ -620,10 +621,10 @@ async def awardparticipation(context:cmd.Context, user:discord.Member, award_val
 
 @bot.hybrid_command(with_app_command=True)
 #async def awardcontrib(context:cmd.Context, award_value:int,user:discord.User):
-async def awardcontrib(context:cmd.Context, user:discord.Member, award_value:int,note:str=None,public:str="nah"):
-    isephemeral:bool=True
-    if(public in ["Yes","yes","True","true","public","Public","Y","y","ok","OK"]):
-        isephemeral=False
+async def awardcontrib(context:cmd.Context, user:discord.Member, award_value:int,note:str=None,hidden:str="nah"):
+    isephemeral:bool=False
+    if(hidden in ["Yes","yes","True","true","Hidden","hidden","Y","y","ok","OK"]):
+        isephemeral=True
     if(context.author.guild_permissions.administrator):
         new_contrib_points:int
         with Session(engine) as session:
