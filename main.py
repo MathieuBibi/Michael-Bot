@@ -567,8 +567,6 @@ async def forcemsgpts(context:cmd.Context,user:discord.Member, msg_value:int):
             session.commit()
             await context.reply(f"{user.mention}'s message points have been repaired, they now have {new_message_points:,}"
                                 '\n-# (keep in mind, "message points" are just a middle calculation step and NOT the same as activity score !)',silent=True,ephemeral=True)
-            await context.reply(f"{user.mention}'s message points have been repaired, they now have {new_message_points:,}"
-                                '\n-# (keep in mind, "message points" are just a middle calculation step and NOT the same as activity score !)',silent=True)
             await checkforpromotion(user,total)
     else:
         await context.reply("fuck off, you're not admin, you're not elligible to use this command",ephemeral=True)
