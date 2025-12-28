@@ -577,7 +577,6 @@ async def awardvoice(context:cmd.Context, user:discord.Member, award_value:int, 
     isephemeral:bool=False
     if(hidden in ["Yes","yes","True","true","Hidden","hidden","Y","y","ok","OK"]):
         isephemeral=True
-        isephemeral=False
     if(context.author.guild_permissions.administrator):
         new_voice_points:int
         with Session(engine) as session:
@@ -590,8 +589,6 @@ async def awardvoice(context:cmd.Context, user:discord.Member, award_value:int, 
             session.commit()
             await context.reply(f"{user.mention} have been granted {award_value:,} voice points and now has {new_voice_points:,}"
                                 '\n-# (keep in mind, "voice points" are just a middle calculation step and NOT the same as activity score !)',silent=True,ephemeral=isephemeral)
-            await context.reply(f"{user.mention} have been granted {award_value:,} voice points and now has {new_voice_points:,}"
-                                '\n-# (keep in mind, "voice points" are just a middle calculation step and NOT the same as activity score !)',silent=True)
             await checkforpromotion(user,total)
     else:
         await context.reply("fuck off, you're not admin, you're not elligible to use this command",ephemeral=isephemeral)
