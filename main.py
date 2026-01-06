@@ -13,6 +13,7 @@ GRUMPYCATROLE:int=455515592338702336
 ADMINCHANNEL=1018088445551325194
 MICHAELCHANNEL=1373432540869955584
 PROMOTIONSMICHAELCHANNEL = 1374014674336612463
+STR_SEPARATOR:str = ";;;|||\n"
 
 import discord
 from discord import app_commands, Object
@@ -37,7 +38,9 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import String
 from sqlalchemy import select
 
-
+# from promotion_commands import *
+# from promotion_functions import *
+# from alchemy_tables import *
 
 
 
@@ -94,6 +97,10 @@ class User(Base):
         back_populates="user",cascade="all,delete-orphan"
     )
 
+    # strikes_info:Mapped[List["Strikes"]] = relationship(
+    #     back_populates="user",cascade="all,delete-orphan"
+    # )
+
 
     @classmethod
     def getbyid(cls,session,id) -> 'User':
@@ -122,6 +129,22 @@ class NotifTrack(Base):
     def getbyids_user_roles(cls,session,user_id,role_id) -> 'NotifTrack':
         smt = session.get(NotifTrack,(user_id,role_id))
         return smt
+    
+# class Strikes(Base):
+#     __tablename__ = 'strikes'
+#     user_id:Mapped[int] = mapped_column(ForeignKey("users.id"))
+#     key:Mapped[int] = mapped_column(primary_key=True)
+#     time_until_next_clean:Mapped[datetime] = mapped_column(default=(1970, 1, 1, 0, 0, 0))
+#     active_strikes:Mapped[int] = mapped_column(default=0)
+#     dead_strikes:Mapped[int] = mapped_column(default=0)
+#     active_strikes_notes:Mapped[str] = mapped_column(default = "") # will be parsed with a separator
+#     dead_strikes_notes:Mapped[str] = mapped_column(default = "") # will be parsed with a separator
+#     user:Mapped["User"] = relationship(back_populates="strikes_info")
+
+    
+
+
+
 
 Base.metadata.create_all(engine)
 
@@ -240,6 +263,10 @@ def user_exists_by_id(session:Session,id: int) -> bool:
     existing_user = session.get(User, id)
     return existing_user is not None
 
+# def user_strikes_exists_by_key(session:Session,key: int) -> bool:
+#     existing_user = session.get(Strikes, key)
+#     return existing_user is not None
+
 def append_message_points_by_id_and_lengthaward(session:Session,id: int, lengthaward:int):
     
     user_to_update = session.get(User, id)
@@ -357,6 +384,10 @@ async def checkforpromotion(user:discord.Member,total:int):
             session.get(NotifTrack,(user.id,KITTENROLE)).status=True
             
         session.commit()
+
+# def check_for_strike_clean (user:discord.Member):
+#     with Session(engine) as session:
+
 
 
 @bot.event
@@ -692,7 +723,55 @@ async def forcedatejoined(context:cmd.Context, user:discord.Member, date_yyyymmd
         await context.reply("fuck off, you're not admin, you're not elligible to use this command")
 
 
-        
+
+# @bot.hybrid_command(with_app_command=True)
+# async def strike(context:cmd.Context, user:discord.Member, nb_strikes:int, note:str):
+#     if(context.author.guild_permissions.administrator):
+
+#         with Session(engine) as session:
+#             db_strikes_user = session.get(Strikes,user.key)
+#             if not(user_strikes_exists_by_key(db_strikes_user)):
+#                 new_strikes_user = Strikes(user_id=user.id,key=user.id,time_until_next_clean=datetime.now(timezone.utc),active_strikes=nb_strikes, active_strikes_notes=note)
+#                 session.add(new_strikes_user)
+#             else :
+#                 ## TODO call method to check for strike cleaning
+                
+#                 if db_strikes_user.active_strikes==0:
+#                     db_strikes_user.time_until_next_clean=datetime.now(timezone.utc)
+
+#                 db_strikes_user.active_strikes = db_strikes_user.active_strikes+nb_strikes
+
+#                 for c in range (nb_strikes):
+#                     db_strikes_user.active_strikes_notes = db_strikes_user.active_strikes_notes + STR_SEPARATOR + note
+
+            
+            ## TODO call punishment method
+
+
+
+#     else :
+#         await context.reply("fuck off, you're not admin, you're not elligible to use this command")
+
+# @bot.hybrid_command(with_app_command=True)
+# async def showstrikes(context:cmd.Context, user:discord.Member):
+#     if (isModOrHigher(context.author)):
+#         if user is None :
+#             user = context.author
+#         with Session(engine) as session:
+#             db_strikes_user = session.get(Strikes,user.key)
+
+
+
+#             if not(user_strikes_exists_by_key(db_strikes_user)):
+#                 await context.reply("{user.mention} never recieved a strike before !")
+            
+#             #else : TODO REAL DISPLAY
+
+
+#     else:
+#         await context.reply("fuck off, you're not moderator, you're not elligible to use this command")
+
+    
     
 
     
