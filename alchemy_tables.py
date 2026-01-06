@@ -38,6 +38,11 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import String
 from sqlalchemy import select
 
+
+
+
+
+
 #con=sqlite3.connect("MichaelBot.db")
 engine = sa.create_engine("sqlite:///MichaelBot.db", echo=False)
 #engine = sa.create_engine("sqlite:///:memory:", echo=True)

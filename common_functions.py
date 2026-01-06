@@ -39,7 +39,4 @@ from sqlalchemy import String
 from sqlalchemy import select
 
 from michael_utils import *
-#from bot_events_listen import *
-from promotion_functions import *
-from common_functions import *
 from alchemy_tables import *

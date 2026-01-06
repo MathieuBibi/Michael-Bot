@@ -39,7 +39,15 @@ from sqlalchemy import String
 from sqlalchemy import select
 
 from michael_utils import *
-#from bot_events_listen import *
-from promotion_functions import *
 from common_functions import *
 from alchemy_tables import *
+
+
+# def user_strikes_exists_by_key(session:Session,key: int) -> bool:
+#     existing_user = session.get(Strikes, key)
+#     return existing_user is not None
+
+
+
+# def check_for_strike_clean (user:discord.Member):
+#     with Session(engine) as session:
