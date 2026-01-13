@@ -196,7 +196,8 @@ async def resetnotiftrack(context:cmd.Context,user:typing.Optional[discord.Membe
 #         useractivscore = db_user.activity_score
 #         usercontribscore = db_user.contribution_score
 #         userbias = db_user.bias_points
-#         usertotal = useractivscore+usercontribscore+userbias
+#         userpenal = db_user.penalty_score
+#         usertotal = useractivscore+usercontribscore+userbias+userpenal
 #         todisplay = f"> {user.mention}'s score breakdown :" f"\n> activity score = {useractivscore:,}"
 #         if(usercontribscore!=0):
 #             todisplay += f"\n> contribution score = {usercontribscore:,}"
@@ -235,7 +236,8 @@ async def showscore(context:cmd.Context,user:typing.Optional[discord.Member]=Non
         useractivscore = db_user.activity_score
         usercontribscore = db_user.contribution_score
         userbias = db_user.bias_points         
-        usertotal = useractivscore+usercontribscore+userbias
+        userpenal = db_user.penalty_score
+        usertotal = useractivscore+usercontribscore+userbias+userpenal
         todisplay:str = (
             f"> {user.mention}'s verbose score breakdown :"
             "\n> ## POINTS :"
@@ -247,12 +249,17 @@ async def showscore(context:cmd.Context,user:typing.Optional[discord.Member]=Non
         if(usernotes!=""):   
             todisplay += f"\n> list of contributions :{usernotes}"
         
+                
         todisplay+= (
             f"\n> date joined (YYYY/MM/DD) = {db_user.date_joined:%Y/%m/%d}"
             f"\n> seniority_multiplier = x{seniority_multiplier:.3}"
             f"\n> ## SCORE :"
             f"\n> activity score = {useractivscore:,}"
             f"\n> contribution score = {usercontribscore:,}"
+        )
+        if(userpenal!=0):
+            todisplay += f"\n> penalty score = {userpenal:,}"
+        todisplay+= (
             f"\n> bias <:trollface:1260219910928203879> score = {userbias:,}"
             f"\n> ## TOTAL SCORE = {usertotal:,}"
         )
@@ -334,7 +341,7 @@ async def awardparticipation(context:cmd.Context, user:discord.Member, award_val
             total = get_total_points_by_id(session,db_user.id)
             session.commit()
             await context.reply(f"{user.mention} have been granted {award_value:,} participation points and now has {new_participation_points:,}"
-                                '\n-# (keep in mind, "voice points" are just a middle calculation step and NOT the same as activity score !)',silent=True)
+                                '\n-# (keep in mind, "participation points" are just a middle calculation step and NOT the same as activity score !)',silent=True)
             await checkforpromotion(user,total,bot)
     else:
         await context.reply("fuck off, you're not admin, you're not elligible to use this command",ephemeral=isephemeral)
@@ -420,23 +427,52 @@ async def forcedatejoined(context:cmd.Context, user:discord.Member, date_yyyymmd
 ########################################################
 ########################################################
 ########################################################
-#region strikes commands
 
+# strikes commands
+
+# #region strikes commands
+
+
+@bot.hybrid_command(with_app_command=True)
+async def penalty(context:cmd.Context, user:discord.Member, award_value:int, public:str="nah"):
+    isephemeral:bool=True
+    if(public in ["Yes","yes","True","true","public","Public","Y","y","ok","OK"]):
+        isephemeral=False
+    if user is None :
+        user = context.author
+    if(context.author.guild_permissions.administrator):
+        new_penalty_score:int
+        with Session(engine) as session:
+            
+            db_user = session.get(User,user.id)
+            db_user.penalty_score= db_user.penalty_score - award_value
+            new_penalty_score= db_user.penalty_score ##to display later outside of the session
+            update_scores_by_id(session,db_user.id)
+            total = get_total_points_by_id(session,db_user.id)
+            session.commit()
+            await context.reply(f"{user.mention} have been deducted {award_value:,} penalty score and now has {new_penalty_score:,}",silent=True,ephemeral=isephemeral)
+            await checkforpromotion(user,total,bot)
+    else:
+        await context.reply("fuck off, you're not admin, you're not elligible to use this command",ephemeral=isephemeral)
 
 # @bot.hybrid_command(with_app_command=True)
 # async def strike(context:cmd.Context, user:discord.Member, nb_strikes:int, note:str):
 #     if(context.author.guild_permissions.administrator):
 
+#         tempnote = note
+#         for i in range (nb_strikes-1):
+#             note = note+STR_SEPARATOR+tempnote
+
 #         with Session(engine) as session:
-#             db_strikes_user = session.get(Strikes,user.key)
-#             if not(user_strikes_exists_by_key(db_strikes_user)):
-#                 new_strikes_user = Strikes(user_id=user.id,key=user.id,time_until_next_clean=datetime.now(timezone.utc),active_strikes=nb_strikes, active_strikes_notes=note)
+#             db_strikes_user = session.get(Strikes,user.id)
+#             if not(user_strikes_exists_by_id(session,user.id)):
+#                 new_strikes_user = Strikes(user_id=user.id,time_until_next_clean=add_one_month(nowUTCnaive()),active_strikes=nb_strikes, active_strikes_notes=note)
 #                 session.add(new_strikes_user)
 #             else :
-#                 ## TODO call method to check for strike cleaning
+#                 check_for_strike_clean(user,session)
                 
 #                 if db_strikes_user.active_strikes==0:
-#                     db_strikes_user.time_until_next_clean=datetime.now(timezone.utc)
+#                     db_strikes_user.time_until_next_clean=add_one_month(nowUTCnaive())
 
 #                 db_strikes_user.active_strikes = db_strikes_user.active_strikes+nb_strikes
 
@@ -444,7 +480,7 @@ async def forcedatejoined(context:cmd.Context, user:discord.Member, date_yyyymmd
 #                     db_strikes_user.active_strikes_notes = db_strikes_user.active_strikes_notes + STR_SEPARATOR + note
 
             
-            ## TODO call punishment method
+#             # TODO call punishment method
 
 
 
@@ -457,14 +493,14 @@ async def forcedatejoined(context:cmd.Context, user:discord.Member, date_yyyymmd
 #         if user is None :
 #             user = context.author
 #         with Session(engine) as session:
-#             db_strikes_user = session.get(Strikes,user.key)
+#             db_strikes_user = session.get(Strikes,user.id)
 
 
 
-#             if not(user_strikes_exists_by_key(db_strikes_user)):
-#                 await context.reply("{user.mention} never recieved a strike before !")
+#             if not(user_strikes_exists_by_id(session,user.id)):
+#                 await context.reply(f"{user.mention} never recieved a strike before !")
             
-#             #else : TODO REAL DISPLAY
+#             await display_strikes(user,db_strikes_user,session,context)
 
 
 #     else:
@@ -472,7 +508,9 @@ async def forcedatejoined(context:cmd.Context, user:discord.Member, date_yyyymmd
 
 
 
-# endregion
+# # endregion
+
+
 ########################################################
 ########################################################
 ########################################################

@@ -162,7 +162,7 @@ def update_scores_by_id(session:Session,id:int):
 
 def get_total_points_by_id(session,id):
     usertocheck = session.get(User,id)
-    return usertocheck.activity_score+usertocheck.contribution_score+usertocheck.bias_points
+    return usertocheck.activity_score+usertocheck.contribution_score+usertocheck.bias_points+usertocheck.penalty_score
 
 # def isroleinroles_byuserandroleid(user:discord.Member,roleid:int):
 #     for i in user.roles :

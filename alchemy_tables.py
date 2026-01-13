@@ -38,6 +38,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import String
 from sqlalchemy import select
 
+from michael_utils import *
 
 
 
@@ -67,14 +68,13 @@ class User(Base):
     contribution_notes:Mapped[str] = mapped_column(default = "")
     contribution_score:Mapped[int] = mapped_column(default=0)
     bias_points:Mapped[int] = mapped_column(default=0)
+    penalty_score:Mapped[int] = mapped_column(default=0)
 
     notified_for_promotions_each_roles:Mapped[List["NotifTrack"]] = relationship(
         back_populates="user",cascade="all,delete-orphan"
     )
+    # strikes_info: Mapped["Strikes"] = relationship(back_populates="user",cascade="all,delete-orphan")
 
-    # strikes_info:Mapped[List["Strikes"]] = relationship(
-    #     back_populates="user",cascade="all,delete-orphan"
-    # )
 
 
     @classmethod
@@ -107,14 +107,16 @@ class NotifTrack(Base):
     
 # class Strikes(Base):
 #     __tablename__ = 'strikes'
-#     user_id:Mapped[int] = mapped_column(ForeignKey("users.id"))
-#     key:Mapped[int] = mapped_column(primary_key=True)
-#     time_until_next_clean:Mapped[datetime] = mapped_column(default=(1970, 1, 1, 0, 0, 0))
+#     user_id:Mapped[int] = mapped_column(ForeignKey("users.id"),primary_key=True)
+#     #key:Mapped[int] = mapped_column()
+#     time_until_next_clean:Mapped[datetime] = mapped_column(default=getepoch())
 #     active_strikes:Mapped[int] = mapped_column(default=0)
 #     dead_strikes:Mapped[int] = mapped_column(default=0)
 #     active_strikes_notes:Mapped[str] = mapped_column(default = "") # will be parsed with a separator
 #     dead_strikes_notes:Mapped[str] = mapped_column(default = "") # will be parsed with a separator
 #     user:Mapped["User"] = relationship(back_populates="strikes_info")
+
+
 
     
 

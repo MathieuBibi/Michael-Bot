@@ -43,11 +43,67 @@ from common_functions import *
 from alchemy_tables import *
 
 
-# def user_strikes_exists_by_key(session:Session,key: int) -> bool:
-#     existing_user = session.get(Strikes, key)
-#     return existing_user is not None
+def user_strikes_exists_by_id(session:Session,id: int) -> bool:
+    existing_user = session.get(Strikes, id)
+    return existing_user is not None
 
 
+async def check_for_strike_clean (user:discord.Member,session:Session):
+    db_strikes_user = session.get(Strikes,user.id)
+    if not user_strikes_exists_by_id(session,user.id):
+        return 0
+    else :
+        if (nowUTCnaive() > db_strikes_user.time_until_next_clean):
+            time_chuncks = count_one_month_chunks(db_strikes_user.time_until_next_clean,nowUTCnaive())
+            strikes_to_clean = (time_chuncks+1)
+            for i in range(strikes_to_clean) :
+                clean_strike()
+        else :
+            return 0
+            
 
-# def check_for_strike_clean (user:discord.Member):
-#     with Session(engine) as session:
+def move_strikes_notes(db_strikes_user:Strikes,session:Session):
+    temp = db_strikes_user.active_strikes_notes.split(STR_SEPARATOR,1)
+    if (db_strikes_user.dead_strikes_notes=="") :
+        db_strikes_user.dead_strikes_notes=temp[0]
+        if (len(temp)>0):
+            db_strikes_user.active_strikes_notes=temp[1]
+        else :
+            db_strikes_user.active_strikes_notes=""
+    else :
+        db_strikes_user.dead_strikes_notes=db_strikes_user.dead_strikes_notes+STR_SEPARATOR+temp[0]
+        if (len(temp)>0):
+            db_strikes_user.active_strikes_notes=temp[1]
+        else :
+            db_strikes_user.active_strikes_notes=""
+
+
+def clean_strike (db_strikes_user:Strikes,session:Session):
+    move_strikes_notes(db_strikes_user, session)
+    if (db_strikes_user.active_strikes>1):
+        db_strikes_user.time_until_next_clean=add_one_month(db_strikes_user.time_until_next_clean)
+    else :
+        db_strikes_user.time_until_next_clean=getepoch()
+    db_strikes_user.active_strikes=db_strikes_user.active_strikes-1
+    db_strikes_user.dead_strikes=db_strikes_user.dead_strikes+1
+
+async def display_strikes(user:discord.Member,db_strikes_user:Strikes,session:Session,context:cmd.Context):
+
+    temp_dead = db_strikes_user.dead_strikes_notes.split(STR_SEPARATOR)
+    deadnotes = ""
+    for i in range (len(temp_dead)):
+        deadnotes = deadnotes + temp_dead[i] + "\n"
+    
+    temp_active = db_strikes_user.active_strikes_notes.split(STR_SEPARATOR)
+    activenotes = ""
+    for i in range (len(temp_active)):
+        activenotes = activenotes + temp_active[i] + "\n"
+    
+    timestamp=timestamp_from_datetime(db_strikes_user.time_until_next_clean)
+
+    
+    await context.reply(f"## {user.mention}'s Strikes❌ breakdown :\nCurrent Strikes :{db_strikes_user.active_strikes}\n## Notes on Current Strikes :\n{activenotes}## Time until next strike cleared :{timestamp}\nPrevious Strikes :{db_strikes_user.dead_strikes}\n## Notes on Previous Strikes :\n{deadnotes}")
+
+
+    
+            

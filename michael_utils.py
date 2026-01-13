@@ -27,7 +27,7 @@ import sqlalchemy as sa
 import logging
 #from sqlalchemy import 
 from sqlalchemy.orm import Mapped, mapped_column, sessionmaker, declarative_base, Session, DeclarativeBase, relationship
-from datetime import date, timedelta, datetime, timezone
+from datetime import date, timedelta, datetime, timezone#, relativedelta
 from discord.ext.commands import CommandInvokeError
 import traceback
 import typing
@@ -42,6 +42,26 @@ def todayUTC():
     utc_aware_dt = datetime.now(timezone.utc)
     return utc_aware_dt.date()
 
+def nowUTCnaive():
+    timenow = datetime.now(timezone.utc)
+    return timenow.replace(tzinfo=None)
+
+def add_one_month(dt_object):
+    return dt_object + relativedelta(months=1)
+
+def add_three_months(dt_object):
+    return dt_object + relativedelta(months=3)
+
+def count_three_month_chunks(start_dt, end_dt):
+    diff = relativedelta(end_dt, start_dt)
+    total_months = (diff.years * 12) + diff.months
+    return total_months // 3
+
+def count_one_month_chunks(start_dt, end_dt):
+    diff = relativedelta(end_dt, start_dt)
+    total_months = (diff.years * 12) + diff.months
+    return total_months // 1
+
 def strcommas(number):
     return f"{number:,}"
 
@@ -54,3 +74,9 @@ def is_yyyymmdd(date_string: str) -> bool:
         return True
     except:
         return False
+    
+def getepoch():
+    return datetime.datetime(1970, 1, 1, 0, 0, 0)
+    
+def timestamp_from_datetime(thedatetime:datetime):
+    return f"<t:{int(thedatetime.timestamp())}:R>"
