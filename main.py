@@ -42,7 +42,7 @@ from michael_utils import *
 #from bot_events_listen import *
 #from promotion_commands import *
 from promotion_functions import *
-# from common_functions import *
+from common_functions import *
 # from strikes_functions import *
 from alchemy_tables import *
 
@@ -71,10 +71,9 @@ bot = MichaelBot(command_prefix='m!',intents=intents, help_command=None)
 
 
 
-########################################################
-########################################################
-########################################################
-########################################################
+################################################################################################################
+################################################################################################################
+
 # region events & listens
 
 
@@ -158,10 +157,10 @@ async def promotion_checks(message:discord.Message):
 
 
 # endregion
-########################################################
-########################################################
-########################################################
-########################################################
+
+################################################################################################################
+################################################################################################################
+
 # region promotion commands
 
 # @bot.hybrid_command(with_app_command=True)
@@ -423,14 +422,181 @@ async def forcedatejoined(context:cmd.Context, user:discord.Member, date_yyyymmd
     else:
         await context.reply("fuck off, you're not admin, you're not elligible to use this command")
 # endregion
-########################################################
-########################################################
-########################################################
-########################################################
 
-# strikes commands
+################################################################################################################
+################################################################################################################
 
-# #region strikes commands
+#region guildconfigs
+
+# region bigcommand
+
+
+@bot.hybrid_command(with_app_command=True)
+async def guildconfig(context:cmd.context,rank_roles:str,threshholds:str,isdefault:str,isbellowzero:str):
+    if(context.author.guild_permissions.administrator):
+        the_guild_id=context.guild.id
+        if not (is_roles_list(rank_roles)):
+            await context.reply("Wrong format on the rank roles list.",ephemeral=True)
+            return
+        else :
+            roles_list_str = re.findall(r"<@&(\d+)>", rank_roles)
+            role_list_int = [int(i) for i in roles_list_str]
+            roles_ammount=len(role_list_int)
+            roles_thresholds_list_int=parse_thresholds_str_to_intlist(threshholds)
+            roles_isdefault:list[bool]=[]
+            roles_isbellowzero:list[bool]=[]
+            if len(roles_thresholds_list_int)!=roles_ammount:
+                await context.reply("The ammount of Rank Roles and Rank Role thresholds do not match.",ephemeral=True)
+                return
+            else :
+
+                if isdefault is not None :
+                    roles_isdefault_str=parse_str_True_False(isdefault)
+                    roles_isdefault=parsed_str_True_False_to_Bool_list(roles_isdefault_str)
+                    if len(roles_isdefault)<roles_ammount:
+                        while len(roles_isdefault)<roles_ammount:
+                            roles_isdefault.append(False)
+                    if isbellowzero is not None :
+                        roles_isbellowzero_str=parse_str_True_False(isbellowzero)
+                        roles_isbellowzero=parsed_str_True_False_to_Bool_list(roles_isbellowzero_str)
+                        if len(roles_isbellowzero)<roles_ammount:
+                            while len(roles_isbellowzero)<roles_ammount:
+                                roles_isbellowzero.append(False)
+                    else :
+                        if roles_ammount >= 3 :
+                            if is_second_element_only(roles_isdefault):
+                                roles_isbellowzero.append(True)
+                                counter = 1
+                                while counter < roles_ammount :
+                                    roles_isbellowzero.append(False)
+                        else :
+                            counter = 0
+                            while counter < roles_ammount :
+                                roles_isbellowzero.append(False)
+                else :
+                    if isbellowzero is not None :
+                        roles_isbellowzero_str=parse_str_True_False(isbellowzero)
+                        roles_isbellowzero=parsed_str_True_False_to_Bool_list(roles_isbellowzero_str)
+                        if len(roles_isbellowzero)<roles_ammount:
+                            while len(roles_isbellowzero)<roles_ammount :
+                                roles_isbellowzero.append(False)
+                        if roles_isbellowzero and roles_isbellowzero[0] == True :
+                            counter1=0
+                            while len(roles_isdefault)<roles_ammount:
+                                if counter1 == 1 :
+                                    roles_isdefault.append(True)
+                                else :
+                                    roles_isdefault.append(False)
+                                counter1 += 1
+                    else :
+                        counter2=0
+                        while (len(roles_isdefault)<roles_ammount)or(len(roles_isbellowzero)<roles_ammount):
+                            if counter2 == 0 :
+                                roles_isdefault.append(True)
+                            else:
+                                roles_isdefault.append(False)
+                            counter2+=1
+                            roles_isbellowzero.append(False)
+                #continue here, that indentation
+                if len(roles_isdefault) != roles_ammount:
+                    await context.reply("Wrong format for isdefault, keep it empty or write something like True, False, False, False with the same ammount of statements as there is roles",ephemeral=True)
+                    return
+                elif len(roles_isbellowzero) != roles_ammount:
+                    await context.reply("Wrong format for isbellowzero, keep it empty or write something like True, False, False, False with the same ammount of statements as there is roles",ephemeral=True)
+                    return
+                
+                ## End of Parsing, Start of Real command behavior :
+
+                with Session(engine) as session:
+                    if not(guild_exists_by_id(session,the_guild_id)) :
+                        new_guild_configs=GuildConfigs(guild_id=the_guild_id,promotable_roles=role_list_int,role_thresholds=roles_thresholds_list_int,role_is_default=roles_isdefault,role_bellow_zero=roles_isbellowzero)
+                        session.add(new_guild_configs)
+                    else :
+                        guild_configs_object = session.get(GuildConfigs, the_guild_id)
+                        #guild_configs_object.guild_id=the_guild_id
+                        guild_configs_object.promotable_roles=role_list_int
+                        guild_configs_object.role_thresholds=roles_thresholds_list_int
+                        guild_configs_object.role_is_default=roles_isdefault
+                        guild_configs_object.role_bellow_zero=roles_isbellowzero
+                    session.commit()
+                    await context.reply("Successfully configured the guild configs",ephemeral=True)
+
+# endregion
+
+@bot.hybrid_command(with_app_command=True)
+async def showguildconfigs(context:cmd.Context, public:str="nah"):
+    isephemeral:bool=True
+    if(public in ["Yes","yes","True","true","public","Public","Y","y","ok","OK"]):
+        isephemeral=False
+    if not (context.author.guild_permissions.administrator):
+        await context.reply("fuck off, you're not admin, you're not elligible to use this command.",ephemeral=isephemeral)
+    else :
+        the_guild_id=context.guild.id
+        with Session(engine) as session:
+            if not(guild_exists_by_id(session,the_guild_id)) :
+                await context.reply("The guild configs have not been set.", ephemeral=isephemeral)
+            else :
+                guild_configs_object = session.get(GuildConfigs, the_guild_id)
+                
+                response = f"## Configuration for Guild: {the_guild_id}\n"
+                
+                if not guild_configs_object.promotable_roles:
+                    response += "No roles have been configured yet."
+                else:
+
+                    for role, thresh, default, below_zero in zip(
+                        guild_configs_object.promotable_roles,
+                        guild_configs_object.role_thresholds,
+                        guild_configs_object.role_is_default,
+                        guild_configs_object.role_bellow_zero
+                    ):
+                        response += (
+                            f"> - <@&{role}> | **Threshold:** {thresh:,} | "
+                            f"**Default:** {default} | **Below Zero:** {below_zero}\n"
+                        )
+
+                await context.reply(response, ephemeral=isephemeral)
+        
+        
+
+@bot.hybrid_command(with_app_command=True)
+async def temp_test(context:cmd.context,roles:str):
+    if (is_roles_list(roles)):
+        roles_list_str = re.findall(r"<@&(\d+)>", roles)
+        role_list_int = [int(i) for i in roles_list_str]
+        print(roles_list_str)
+        print(role_list_int)
+    await context.reply("Check the terminal, Mat.")
+
+
+# @bot.hybrid_command(with_app_command=True)
+# async def initrolesnekotopia(context:cmd.context):
+#     if(context.author.guild_permissions.administrator):
+#         nekotopia_id = 455428492171935757
+#         nekotopia_promotable_roles=[GRUMPYCATROLE,KITTENROLE,LOLCATROLE,TECHNOCATROLE,BONGOCATROLE,YAPPERCATROLE,ANCIENTCATROLE]
+#         nekotpia_role_thresholds=[-1000000000,0,170,2050,11000,50000,332000]
+#         nekotopia_role_is_default=[False,True,False,False,False,False,False]
+#         nekotopia_role_bellow_zero=[True,False,False,False,False,False,False]
+        
+#         with Session(engine) as session:
+#             if not(guild_exists_by_id(session,nekotopia_id)) :
+#                 new_guild_configs=GuildConfigs(guild_id=nekotopia_id,promotable_roles=nekotopia_promotable_roles,role_thresholds=nekotpia_role_thresholds,role_is_default=nekotopia_role_is_default,role_bellow_zero=nekotopia_role_bellow_zero)
+#                 session.add(new_guild_configs)
+#             else :
+#                 guild_configs_object = session.get(GuildConfigs, id)
+#                 guild_configs_object.guild_id=nekotopia_id
+#                 guild_configs_object.promotable_roles=nekotopia_promotable_roles
+#                 guild_configs_object.role_thresholds=nekotpia_role_thresholds
+#                 guild_configs_object.role_is_default=nekotopia_role_is_default
+#                 guild_configs_object.role_bellow_zero=nekotopia_role_bellow_zero
+#             session.commit()
+
+# endregion
+
+################################################################################################################
+################################################################################################################
+
+#region strikes commands
 
 
 @bot.hybrid_command(with_app_command=True)
@@ -508,13 +674,10 @@ async def penalty(context:cmd.Context, user:discord.Member, award_value:int, pub
 
 
 
-# # endregion
+# endregion
 
-
-########################################################
-########################################################
-########################################################
-########################################################
+################################################################################################################
+################################################################################################################
     
    
     

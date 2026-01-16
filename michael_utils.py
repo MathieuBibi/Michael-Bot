@@ -37,6 +37,7 @@ from typing import Optional
 from sqlalchemy import ForeignKey
 from sqlalchemy import String
 from sqlalchemy import select
+import re
 
 def todayUTC():
     utc_aware_dt = datetime.now(timezone.utc)
@@ -80,3 +81,35 @@ def getepoch():
     
 def timestamp_from_datetime(thedatetime:datetime):
     return f"<t:{int(thedatetime.timestamp())}:R>"
+
+def is_roles_list(input_string: str) -> bool:
+    pattern = r"^<@&\d+>(\s*<@&\d+>)*$"
+    return bool(re.match(pattern, input_string.strip()))
+
+def parse_thresholds_str_to_intlist(input_string: str) -> list[int]:
+    return [int(item.strip()) for item in input_string.split(',') if item.strip()]
+
+def parse_str_True_False(input_string: str) -> str:
+    true_pattern = r"Yes|True|Y|Ok"
+    false_pattern = r"No|N|False"
+    
+    text = re.sub(true_pattern, "True", input_string, flags=re.IGNORECASE)
+    text = re.sub(false_pattern, "False", text, flags=re.IGNORECASE)
+    
+    return text
+
+def is_True_False_string(input_string: str) -> bool:
+    pattern = r"^((True|False)(,(True|False))*)?$"
+    return bool(re.match(pattern, input_string.strip()))
+
+def parsed_str_True_False_to_Bool_list(input_str: str) -> list[bool]:
+    return [item.strip() == "True" for item in input_str.split(",")]
+
+
+def is_second_element_only(bool_list: list[bool]) -> bool:
+    if len(bool_list) < 3: #Ensures the list has at least 3 elements
+        return False
+    if not bool_list[1]:
+        return False
+    others_are_false = all(not val for i, val in enumerate(bool_list) if i != 1)
+    return others_are_false

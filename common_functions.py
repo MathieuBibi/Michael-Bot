@@ -40,3 +40,11 @@ from sqlalchemy import select
 
 from michael_utils import *
 from alchemy_tables import *
+
+# def nuke_guild_configs():
+#     return
+
+def guild_exists_by_id(session:Session,id: int) -> bool:
+    existing_guild = session.get(GuildConfigs, id)
+    return existing_guild is not None
+

@@ -27,6 +27,8 @@ import sqlalchemy as sa
 import logging
 #from sqlalchemy import 
 from sqlalchemy.orm import Mapped, mapped_column, sessionmaker, declarative_base, Session, DeclarativeBase, relationship
+from sqlalchemy import Column, Integer, JSON
+from sqlalchemy.ext.mutable import MutableList
 from datetime import date, timedelta, datetime, timezone
 from discord.ext.commands import CommandInvokeError
 import traceback
@@ -76,10 +78,23 @@ class User(Base):
     # strikes_info: Mapped["Strikes"] = relationship(back_populates="user",cascade="all,delete-orphan")
 
 
-
     @classmethod
     def getbyid(cls,session,id) -> 'User':
         return session.get(cls,id)
+    
+
+class GuildConfigs(Base):
+    __tablename__ = "guildconfigs"
+    guild_id: Mapped[int] = mapped_column(primary_key=True)
+    promotable_roles: Mapped[List[int]] = mapped_column(MutableList.as_mutable(JSON), default=list)
+    role_thresholds: Mapped[List[int]] = mapped_column(MutableList.as_mutable(JSON), default=list)
+    role_is_default: Mapped[List[bool]] = mapped_column(MutableList.as_mutable(JSON), default=list)
+    role_bellow_zero: Mapped[List[bool]] = mapped_column(MutableList.as_mutable(JSON), default=list)
+
+    @classmethod
+    def getbyguildid(cls,session,id) -> 'GuildConfigs':
+        return session.get(cls,id)
+
     
 # class ScanTrack(Base):
 #     __tablename__ = 'scantrack'
