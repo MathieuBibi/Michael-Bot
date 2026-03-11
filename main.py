@@ -89,9 +89,9 @@ async def on_ready():
     logger = logging.getLogger('discord')
     logger.setLevel(logging.INFO)
     logger.addHandler(logging.StreamHandler())
-    print(F"Meowchael ready o7, {bot.user.name}")
+    print(F"Meowchael ready 🫡, {bot.user.name}")
     channel=bot.get_channel(MICHAELCHANNEL)
-    await channel.send("Meowchael ready o7")
+    await channel.send("Meowchael ready 🫡")
     
 
 @bot.listen('on_message')
@@ -238,7 +238,7 @@ async def showscore(context:cmd.Context,user:typing.Optional[discord.Member]=Non
         userpenal = db_user.penalty_score
         usertotal = useractivscore+usercontribscore+userbias+userpenal
         todisplay:str = (
-            f"> {user.mention}'s verbose score breakdown :"
+            f"> {user.mention}'s Promotion score breakdown :"
             "\n> ## POINTS :"
             f"\n> message points = {db_user.message_points:,}"
             f"\n> voice points = {db_user.voice_points:,}"
@@ -253,14 +253,14 @@ async def showscore(context:cmd.Context,user:typing.Optional[discord.Member]=Non
             f"\n> date joined (YYYY/MM/DD) = {db_user.date_joined:%Y/%m/%d}"
             f"\n> seniority_multiplier = x{seniority_multiplier:.3}"
             f"\n> ## SCORE :"
-            f"\n> activity score = {useractivscore:,}"
-            f"\n> contribution score = {usercontribscore:,}"
+            f"\n> 🗣️activity score = {useractivscore:,}"
+            f"\n> 🫡contribution score = {usercontribscore:,}"
         )
         if(userpenal!=0):
-            todisplay += f"\n> penalty score = {userpenal:,}"
+            todisplay += f"\n> ⚖️penalty score = {userpenal:,}"
         todisplay+= (
-            f"\n> bias <:trollface:1260219910928203879> score = {userbias:,}"
-            f"\n> ## TOTAL SCORE = {usertotal:,}"
+            f"\n> <:trollface:1260219910928203879>bias score = {userbias:,}"
+            f"\n> ## TOTAL PROMOTION SCORE = {usertotal:,}"
         )
         session.commit()
     await context.reply(todisplay,silent=True,ephemeral=isephemeral)
